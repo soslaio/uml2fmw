@@ -242,7 +242,7 @@ class Classes:
         else:
             self._classes = OrderedDict()
 
-    def relacionar(self, generalizacoes):
+    def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
 
         # Define os filhos e pais das classes.

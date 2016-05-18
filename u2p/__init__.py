@@ -7,8 +7,9 @@ from os import path
 
 __here = path.abspath(path.dirname(__file__))
 
+
 def get_classes(xml_file):
-    ''' Retorna as classes presentes no arquivo XML. '''
+    """Retorna as classes presentes no arquivo XML."""
 
     # Lê o arquivo XML.
     with open(xml_file) as xf:
@@ -20,13 +21,13 @@ def get_classes(xml_file):
 
     # Lê as generalizações e utiliza como base pra relacionar as classes.
     generalizacoes = Generalizacoes(xmlobj)
-    classes.relacionar(generalizacoes)
+    classes.connect(generalizacoes)
 
     return classes
 
 
 def generate(xml_file, classes=None):
-    ''' Gera a aplicação a partir do arquivo XML exportado de um modelo UML. '''
+    """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
 
     # Recebe a lista de classes presentes no arquivo XML, caso a lista não tenha sido repassada.
     if classes is None:

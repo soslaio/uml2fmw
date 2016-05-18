@@ -6,34 +6,46 @@ Script que transforma um modelo UML numa aplicação Pyramid.
 Usage:
     uml2pyramid.py [--print-code | -c]
     [--print-objects | -o]
-    [--compilar]
+    [--filename NAME| -n NAME]
+    [--compile]
     ARQUIVO
 
 Arguments:
-    ARQUIVO                 Arquivo XML do modelo.
+    ARQUIVO                     Arquivo XML do modelo.
 
 Options:
-    -c, --print-code        Número do processo a ser analisado.
-    -o, --print-objects     Filtrar pelo status dos processos.
-    --compilar              Indica se o código gerado deve ser compilado.
+    -c, --print-code            Número do processo a ser analisado.
+    -o, --print-objects         Filtrar pelo status dos processos.
+    -n NAME, --filename NAME    Nome do arquivo a ser gerado.
+    --compile                   Indica se o código gerado deve ser compilado.
 """
 
 from docopt import docopt
 from u2p import generate
+from os import path
 
+__here = path.abspath(path.dirname(__file__))
 
 if __name__ == '__main__':
     # Faz toda a macumba com os parâmetros da linha de comando <3.
-    _parametros_script = docopt(__doc__)
+    parametros_script = docopt(__doc__)
 
     # Parâmetros do script.
-    xml_file = _parametros_script['ARQUIVO']
-    print_code = _parametros_script['--print-code']
-    print_object = _parametros_script['--print-objects']
-    compilar = _parametros_script['--compilar']
+    xml_file = parametros_script['ARQUIVO']
+    print_code = parametros_script['--print-code']
+    print_object = parametros_script['--print-objects']
+    compilar = parametros_script['--compile']
+    filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
     code = generate(xml_file)
+
+    # Escreve o código num arquivo.
+    filename = filename if filename else 'generated_code.py'
+    code_file = path.join(__here, 'generated', filename)
+    with open(code_file, 'w') as cf:
+        cf.write(code.encode('utf-8'))
+        cf.close()
 
     # Imprime o código, caso informado.
     if print_code:
@@ -49,5 +61,6 @@ if __name__ == '__main__':
 
     # Compila o código gerado para localizar erros.
     if compilar:
+        print
         compiled = compile(code, '', 'exec')
         exec compiled
