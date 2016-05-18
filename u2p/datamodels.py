@@ -16,7 +16,7 @@ class XmlObject:
 
 
 class Atributo(XmlObject):
-    ''' Atributo de uma classe. Implementação necessária devido à propriedade 'colander'. '''
+    ''' Atributo de uma classe. '''
 
     def __init__(self, xml_attributes, tagged_values):
         self.xml_attributes = xml_attributes
@@ -38,6 +38,7 @@ class Atributo(XmlObject):
 
 class TaggedValue(XmlObject):
     ''' Objeto que representa um tagged value. '''
+
     def __init__(self, xml_attributes):
         self.xml_attributes = xml_attributes
 
@@ -116,10 +117,9 @@ class TaggedValues:
             self._tagged_values = OrderedDict()
             xmltaggedvalues = xmlobj.iterdescendants(tag="TaggedValue")
 
-            if xmltaggedvalues:
+            if xmltaggedvalues is not None:
                 for taggedv in xmltaggedvalues:
-                    tv = TaggedValue(taggedv.attrib)
-                    self._tagged_values[tv.name] = tv
+                    self._tagged_values[tv.name] = TaggedValue(taggedv.attrib)
             else:
                 print 'Nenhum tagged value localizado.'
         elif data is not None:
@@ -152,8 +152,7 @@ class Generalizacoes:
 
             if xmlgeneralizations is not None:
                 for xmlgeneralization in xmlgeneralizations:
-                    xml_attributes = xmlgeneralization.attrib
-                    gen = Generalizacao(xml_attributes)
+                    gen = Generalizacao(xmlgeneralization.attrib)
                     
                     # Gambiarra para evitar que sejam adicionadas generalizações em níveis abaixo do desejado.
                     if 'Id' in gen.xml_attributes.keys():
@@ -251,11 +250,11 @@ class Classes:
             children = OrderedDict()
 
             for gen in generalizacoes:
-                # Localiza os pais da classe.
+                # Localiza os filhos da classe.
                 if classe.id == gen.from_id:
                     children[gen.to_id] = self._classes[gen.to_id]
 
-                # Localiza os filhos da classe.
+                # Localiza os pais da classe.
                 if classe.id == gen.to_id:
                     parents[gen.from_id] = self._classes[gen.from_id]
 

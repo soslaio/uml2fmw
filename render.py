@@ -30,6 +30,7 @@ def imprimirClasse(classes):
 
 
 if __name__ == '__main__':
+
     # Carregamento dos dados a partir do XML.
     xml_file = '/home/soslaio/teste.xml/project.xml'
     with open(xml_file) as xf:
