@@ -2,9 +2,13 @@
 
 from collections import OrderedDict
 
+
 # Classes de modelos de dados.
 class XmlObject:
-    ''' Objeto base para as classes de dados.'''
+    """ Objeto base para as classes de dados. """
+
+    def __init__(self, xml_attributes):
+        self.xml_attributes = xml_attributes
 
     @property
     def name(self):
@@ -16,7 +20,7 @@ class XmlObject:
 
 
 class Atributo(XmlObject):
-    ''' Atributo de uma classe. '''
+    """Atributo de uma classe."""
 
     def __init__(self, xml_attributes, tagged_values):
         self.xml_attributes = xml_attributes
@@ -37,10 +41,7 @@ class Atributo(XmlObject):
 
 
 class TaggedValue(XmlObject):
-    ''' Objeto que representa um tagged value. '''
-
-    def __init__(self, xml_attributes):
-        self.xml_attributes = xml_attributes
+    """Objeto que representa um tagged value."""
 
     @property
     def value(self):
@@ -52,7 +53,7 @@ class TaggedValue(XmlObject):
 
 
 class Classe(XmlObject):
-    ''' Objeto que representa uma classe. '''
+    """Objeto que representa uma classe."""
 
     def __init__(self, attributes, xml_attributes, tagged_values):
         self.attributes = attributes
@@ -90,10 +91,7 @@ class Classe(XmlObject):
 
 
 class Generalizacao(XmlObject):
-    ''' Representação de uma generalização. '''
-
-    def __init__(self, xml_attributes):
-        self.xml_attributes = xml_attributes
+    """Representação de uma generalização."""
 
     @property
     def name(self):
@@ -110,7 +108,7 @@ class Generalizacao(XmlObject):
 
 # Classes de lista de dados.
 class TaggedValues:
-    ''' Tagged values associados ao objeto XML. '''
+    """Tagged values associados ao objeto XML."""
 
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
@@ -119,7 +117,8 @@ class TaggedValues:
 
             if xmltaggedvalues is not None:
                 for taggedv in xmltaggedvalues:
-                    self._tagged_values[tv.name] = TaggedValue(taggedv.attrib)
+                    tv = TaggedValue(taggedv.attrib)
+                    self._tagged_values[tv.name] = tv
             else:
                 print 'Nenhum tagged value localizado.'
         elif data is not None:
@@ -144,6 +143,8 @@ class TaggedValues:
 
 
 class Generalizacoes:
+    """Lista de generalizações do diagrama."""
+
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
             self._generalizacoes = dict()
@@ -181,7 +182,7 @@ class Generalizacoes:
 
 
 class Atributos:
-    ''' Atributos da classe. '''
+    """Atributos da classe."""
 
     def __init__(self, xmlclasse):
         self._atributos = OrderedDict()
@@ -216,7 +217,7 @@ class Atributos:
 
 
 class Classes:
-    ''' Classes presentes no arquivo XML.'''
+    """Classes presentes no arquivo XML."""
 
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
@@ -241,8 +242,8 @@ class Classes:
         else:
             self._classes = OrderedDict()
 
-    def carregarRelacoes(self, generalizacoes):
-        ''' Analisa a lista de generalizações recebida e faz as relações entre as classes. '''
+    def relacionar(self, generalizacoes):
+        """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
 
         # Define os filhos e pais das classes.
         for classe in self._classes.itervalues():

@@ -1,30 +1,42 @@
 # -*- coding: utf-8 -*-
-'''
 
-# SUPERANDO LIMITES: COMO DRIBLAR A CRISE E CONTINUAR CRESCENDO
-eventos de impacto
-só para empresas - de qualquer porte
-pré-inscrição via site externo de evento
-cadastro direto no siac
-Marabá
-31/05 - 19h-21h - FACULDADE METROPOLITANA
-meta: 300 cnpj
-meta: redução do tempo de credenciamento
-siac online ou servidor local?
-05 postos de credenciamento - notebooks do regional
-evento gratuito
-formulário de pré-inscrição no sistema de eventos gratuito da EBI
-em parceria com o shopping pátio marabá
-1 semana ou 2 de antecedência
+from lxml import objectify
+from chameleon import PageTemplate
+from .datamodels import *
+from os import path
+
+__here = path.abspath(path.dirname(__file__))
+
+def get_classes(xml_file):
+    ''' Retorna as classes presentes no arquivo XML. '''
+
+    # Lê o arquivo XML.
+    with open(xml_file) as xf:
+        xml = xf.read()
+
+    # Objetifica o xml e lê as classes.
+    xmlobj = objectify.fromstring(xml)
+    classes = Classes(xmlobj)
+
+    # Lê as generalizações e utiliza como base pra relacionar as classes.
+    generalizacoes = Generalizacoes(xmlobj)
+    classes.relacionar(generalizacoes)
+
+    return classes
 
 
-# DESAFIOS DO CRESCIMENTO - 4-5 horas
-2 palestras separadas e depois palestrantes se juntam num talk-show
-ME e EPP
-Paragominas - 09/06 - 300 cnpj - Local de formatura da allayne
-Belém - 07/06 - 400 cnpj - local ainda não fechado
+def generate(xml_file, classes=None):
+    ''' Gera a aplicação a partir do arquivo XML exportado de um modelo UML. '''
 
+    # Recebe a lista de classes presentes no arquivo XML, caso a lista não tenha sido repassada.
+    if classes is None:
+        classes = get_classes(xml_file)
 
-* Verificar o disparo de um processo programaticamente.
+    # Carregamento do template com os dados.
+    template_file = path.join(__here, 'template', 'models.py.pt')
+    with open(template_file) as tf:
+        template_code = tf.read()
+    template = PageTemplate(template_code)
+    rendered = template(classes=classes)
 
-'''
+    return rendered
