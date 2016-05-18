@@ -1,0 +1,112 @@
+
+Mapeamento entre 
+
+# Classe
+Tagged Values:
+    - __tablename__: Nome da tabela no banco de dados.
+
+
+# Atributos
+Type:
+    - Integer
+    - Numeric
+    - DateTime
+    - String
+    - relationship
+    - FileData
+
+Tagged Values:
+    DEFORM
+    § class deform.Field
+    - widget:           Especificação do widget a ser utilizado
+        - TextInputWidget:          Renderiza um <input type="text">.
+        - MoneyInputWidget:         Renderiza um <input type="text"> com um jquery-maskMoney plugin que força o formato de dinheiro. Associado ao tipo colander.Decimal.
+        - AutocompleteInputWidget:  Renderiza um <input type="text"> com um jquery.ui.autocomplete.
+        - HiddenWidget:             Renderiza um <input type="hidden">.
+        - TextAreaWidget:           Renderiza um <textarea>.
+        - RichTextWidget:           Renderiza um <textarea> com o TinyMCE Editor.
+        - PasswordWidget:           Renderiza um <input type="password">.
+        - CheckboxWidget:           Renderiza um <input type="checkbox">.
+        - CheckedInputWidget:       Renderiza 2 text inputs, um para escrever e o outro pra confirmar.
+        - CheckedPasswordWidget:    Renderiza 2 password inputs, um para escrever e o outro pra confirmar.
+        - CheckboxChoiceWidget:     Renderiza uma sequência de <input type="check"> baseado nos valores.
+        - SelectWidget:             Renderiza um <select> baseados nos valores.
+        - RadioChoiceWidget:        Renderiza uma sequência de <input type="radio"> baseado nos valores.
+        - FileUploadWidget:         Renderiza um campo de upload de arquivos. Utiliza o tipo deform.FileData no lugar de 'String()', por exemplo.
+        - DateInputWidget:          Renderiza um datapicker. Por padrão utiliza o date input do HTMML5. Se não conseguir, usa o JQuery UI date picker.
+        - DateTimeInputWidget:      Renderiza um datatimepicker. Por padrão utiliza o date input do HTMML5. Se não conseguir, usa o JQuery UI date picker com o JQuery Timepicker add-on.
+        - DatePartsWidget:          Renderiza 3 <input type="text">, de ano, mês e dia.
+        - TextAreaCSVWidget:        Usa um textarea para editar dados CSV.
+        - TextInputCSVWidget:       Usa um text para editar dados CSV.
+    - name:             Nome do campo.
+    - title:            Label do campo.
+    - description:      Descrição auxiliar do campo.
+    - required:         Indica a obrigatoriedade do campo.
+    
+    § class deform.widget.Widget
+    - css_class:        Classe css do campo.
+    - error_class:      Classe css do campo em situação de erro.
+    - readonly:         Indica se o campo em questão é somente leitura.
+    
+    § comuns a várias classes de widgets
+    - size:             Tamanho, em colunas, do campo.
+    - style:            Css que será colocado dentro de uma tag 'style' no campo.
+    - values:           Para o AutocompleteInputWidget, um dado iterável é tratado como dado local, e uma string é tratado como URL, que tem que retornar dados no formato JSON.
+                        Para o CheckboxChoiceWidget, é uma sequência de tuplas '(key, value)', onde o primeiro valor pode ser string, unicode ou inteiro, e o segundo string ou unicode.
+                        Para o SelectWidget, é a mesma regra do CheckboxChoiceWidget.
+    - mask:             Máscara do plugin jquery.maskedinput.
+    - mask_placeholder: Caractere de substituição para a máscara.
+    - options:          Dicionário com opções específicas para o widget.
+    - cols:             Comuns para TextAreaWidget e TextAreaCSVWidget. Representa o número de colunas do campo.
+    - rows:             Comuns para TextAreaWidget e TextAreaCSVWidget. Representa o número de linhas do campo.
+    - null_value:       Comuns para CheckboxChoiceWidget, SelectWidget e RadioChoiceWidget. Valor a ser considerado caso nenhum valor tenha sido selecionado. O padrão é ''.
+
+    § class deform.widget.SelectWidget
+    - multiple:         Permite selecionar vários valores da lista.
+    
+    § class deform.widget.AutocompleteInputWidget
+    - min_length:       Número de caracteres para esperar antes de acionar a auto-complementação. O padrão é 2.
+    - delay:            Tempo de espera entre pressionar a tecla e acionar a auto-complementação. O padrão é 10ms para dados locais e 400ms para consulta a URLs.
+    
+    § class deform.widget.RichTextWidget
+    - delayed_load:     Caso haja muitos richtexts na página, carrega apenas quando clicar no campo. O padrão é False.
+    
+    § class deform.widget.CheckboxWidget
+    - true_val:         Valor a ser considerado caso o checkbox tenha sido marcado. O padrão, obviamente, é True.
+    - false_val:        Valor a ser considerado caso o checkbox não tenha sido marcado. O padrão, obviamente, é False.
+    
+    § class deform.widget.CheckedInputWidget
+    - mismatch_message: Mensagem que será apresentada caso os valores dos campos de entrada não coincidam.
+    
+    § class deform.widget.DatePartsWidget
+    - assume_y2k:       Se o ano for informado apenas com 2 dígitos, assume que é posterior ao ano 2000. O padrão é True.
+    
+
+
+        
+        
+        
+        
+
+
+    
+
+    SQLALCHEMY:
+    - primary_key:  Informa se o atributo é chave primária da tabela.
+    - ForeignKey:   Recebe o atributo chave-primária da classe relacionada, no formato "nomedaclasse.nomedocampo", como "usuario.id", por exemplo.
+    - asdecimal:    Booleano para atributos do tipo Numeric.
+    - relationship: Recebe a classe com a qual a classe em questão se relaciona.
+    - backref:      Recebe o nome da tabela de própria classe. Pode ser gerado automaticamente.
+
+
+# Relação de tipos SQLAlchemy-Deform
+- Integer
+- Numeric
+- String:   String
+- DateTime: Date
+- Boolean:  Boolean
+
+# Observações
+- Falta descrever o funcionamento do OptGroup
+- Falta descrever o funcionamenro do MappingWidget
+- Falta descrever o funcionamenro do SequenceWidget

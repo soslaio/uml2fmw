@@ -1,0 +1,39 @@
+from sqlalchemy import Enum, Column, Index, Integer, Text, String, Numeric, ForeignKey, Date, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
+from zope.sqlalchemy import ZopeTransactionExtension
+from deform.widget import TextInputWidget, SelectWidget, RadioChoiceWidget, SequenceWidget, AutocompleteInputWidget
+
+import colander
+
+import yaml
+from os.path import dirname, abspath, join
+
+from sqlalchemy import event
+from colanderalchemy import setup_schema
+
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+Base = declarative_base()
+path = dirname(abspath(__file__))
+<tal:rep repeat="classe classes">
+
+class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.parents) else 'Base'}):
+    <tal:cond condition="not bool(classe.parents)">
+    __tablename__ = "${classe.tablename}"
+    __mapper_args__ = { "polymorphic_on": "${classe.polymorphic_on}" }
+    </tal:cond><tal:cond condition="bool(classe.parents)">
+    __mapper_args__ = { "polymorphic_identity": "${ classe.polymorphic_identity }" }
+    </tal:cond><tal:rep repeat="atributo classe.attributes">
+    ${atributo.name} = Column(${atributo.tipo},<tal:defcond define="atv atributo.tagged_values" condition="bool(atv)"><tal:cond condition="'primary_key' in atv.keys()">
+        primary_key=${str(atv['primary_key'].value)},</tal:cond><tal:cond condition="'nullable' in atv.keys()">
+        nullable=${str(atv['nullable'].value)},</tal:cond><tal:cond condition="atributo.colander">
+        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander">
+               "${taggedv.name}": ${ taggedv.value if taggedv.tipo == "Boolean" else '"%s"' % taggedv.value },</tal:rep>}}
+            </tal:cond></tal:defcond>
+        )</tal:rep><tal:cond condition="bool(classe.children)">
+    ${classe.polymorphic_on} = Column(String(50),
+        nullable=False,
+        info={ "colanderalchemy" : { 'exclude': True } })</tal:cond>
+
+event.listen(${classe.name}, "mapper_configured", setup_schema)
+</tal:rep>
