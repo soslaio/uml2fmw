@@ -3,7 +3,6 @@
 
 def print_classes(classes):
     """ Método útil para visualização de classes. """
-
     for classe in classes:
         print classe, classe.id
         for atributo in classe.attributes:

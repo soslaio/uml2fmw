@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 
 # Classes de modelos de dados.
-class XmlObject:
+class BaseXml:
     """ Objeto base para as classes de dados. """
 
     def __init__(self, xml_attributes):
@@ -12,14 +12,16 @@ class XmlObject:
 
     @property
     def name(self):
+        """Nome do objeto."""
         return self.xml_attributes['Name']
 
     @property
     def id(self):
+        """ID do objeto."""
         return self.xml_attributes['Id']
 
 
-class Atributo(XmlObject):
+class Atributo(BaseXml):
     """Atributo de uma classe."""
 
     def __init__(self, xml_attributes, tagged_values):
@@ -28,8 +30,9 @@ class Atributo(XmlObject):
 
     @property
     def colander(self):
+        """"""
         colander_attr = ['title', 'description', 'missing_msg', 'widget', 'validator', 'exclude', 'default']
-        data = { tv.name : tv for tv in self.tagged_values if tv.name in colander_attr }
+        data = {tv.name: tv for tv in self.tagged_values if tv.name in colander_attr}
         return TaggedValues(data=data)
 
     @property
@@ -40,7 +43,7 @@ class Atributo(XmlObject):
         return "Atributo '%s' do tipo '%s'" % (self.name, self.tipo)
 
 
-class TaggedValue(XmlObject):
+class TaggedValue(BaseXml):
     """Objeto que representa um tagged value."""
 
     @property
@@ -52,7 +55,7 @@ class TaggedValue(XmlObject):
         return self.xml_attributes['Type']
 
 
-class Classe(XmlObject):
+class Classe(BaseXml):
     """Objeto que representa uma classe."""
 
     def __init__(self, attributes, xml_attributes, tagged_values):
@@ -90,7 +93,7 @@ class Classe(XmlObject):
         return "Classe '%s'" % self.name
 
 
-class Generalizacao(XmlObject):
+class Generalizacao(BaseXml):
     """Representação de uma generalização."""
 
     @property
@@ -244,7 +247,6 @@ class Classes:
 
     def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
-
         # Define os filhos e pais das classes.
         for classe in self._classes.itervalues():
             parents = OrderedDict()
