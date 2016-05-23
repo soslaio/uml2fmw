@@ -296,3 +296,22 @@ class Classes:
 
     def __iter__(self):
         return self.__classes.itervalues()
+
+    def __str__(self):
+        strclass = ''
+        for k in self.__classes.keys():
+            classe = self.__classes[k]
+            strclass += '%s, ID: %s\n' % (classe, classe.id)
+            for atributo in classe.attributes:
+                strclass += '\t%s\n' % atributo
+
+            if bool(classe.children):
+                strclass += '\tFilhos:\n'
+                for children in classe.children:
+                    strclass += '\t   %s\n' % children
+
+            if bool(classe.parents):
+                strclass += '\tPais:\n'
+                for parents in classe.parents:
+                    strclass += '\t   %s\n' % parents
+        return strclass

@@ -30,6 +30,7 @@ __email__ = 'rogeriorp@gmail.com'
 __version__ = '1.0'
 
 __here = path.abspath(path.dirname(__file__))
+__classes = None
 
 
 def get_classes(xml_file):
@@ -40,13 +41,14 @@ def get_classes(xml_file):
 
     # Objetifica o xml e lê as classes.
     xmlobj = objectify.fromstring(xml)
-    classes = Classes(xmlobj)
+    global __classes
+    __classes = Classes(xmlobj)
 
     # Lê as generalizações e utiliza como base pra relacionar as classes.
     generalizacoes = Generalizacoes(xmlobj)
-    classes.connect(generalizacoes)
+    __classes.connect(generalizacoes)
 
-    return classes
+    return __classes
 
 
 def generate(xml_file, classes=None):
@@ -88,17 +90,15 @@ if __name__ == '__main__':
 
     # Imprime o código, caso informado.
     if print_code:
-        print code
+        print(code)
 
     # Imprime os objetos das classes, caso informado.
     if print_object:
-        from util import print_classes
-
-        classes = get_classes(xmi_file)
-        print_classes(classes)
+        # classes = get_classes(xmi_file)
+        print(__classes)
 
     # Compila o código gerado para localizar erros.
     if compilar:
-        print
+        print()
         compiled = compile(code, '', 'exec')
         exec compiled
