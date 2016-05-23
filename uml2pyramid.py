@@ -58,7 +58,7 @@ def generate(xml_file, classes=None):
         classes = get_classes(xml_file)
 
     # Carregamento do template com os dados.
-    template_file = path.join(__here, 'template', 'models.py.pt')
+    template_file = path.join(__here, 'template', 'u2p', 'u2p', 'models.py.pt')
     with open(template_file) as tf:
         template_code = tf.read()
     template = PageTemplate(template_code)
