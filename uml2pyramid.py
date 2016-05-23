@@ -20,7 +20,9 @@ Options:
 """
 
 from docopt import docopt
-from u2p import generate
+from lxml import objectify
+from chameleon import PageTemplate
+from datamodels import *
 from os import path
 
 __author__ = u'Rogério Pereira'
@@ -29,19 +31,53 @@ __version__ = '1.0'
 
 __here = path.abspath(path.dirname(__file__))
 
+
+def get_classes(xml_file):
+    """Retorna as classes presentes no arquivo XML."""
+    # Lê o arquivo XML.
+    with open(xml_file) as xf:
+        xml = xf.read()
+
+    # Objetifica o xml e lê as classes.
+    xmlobj = objectify.fromstring(xml)
+    classes = Classes(xmlobj)
+
+    # Lê as generalizações e utiliza como base pra relacionar as classes.
+    generalizacoes = Generalizacoes(xmlobj)
+    classes.connect(generalizacoes)
+
+    return classes
+
+
+def generate(xml_file, classes=None):
+    """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
+    # Recebe a lista de classes presentes no arquivo XML, caso a lista não tenha sido repassada.
+    if classes is None:
+        classes = get_classes(xml_file)
+
+    # Carregamento do template com os dados.
+    template_file = path.join(__here, 'template', 'models.py.pt')
+    with open(template_file) as tf:
+        template_code = tf.read()
+    template = PageTemplate(template_code)
+    rendered = template(classes=classes)
+
+    return rendered
+
+
 if __name__ == '__main__':
     # Faz toda a macumba com os parâmetros da linha de comando <3.
     parametros_script = docopt(__doc__)
 
     # Parâmetros do script.
-    xml_file = parametros_script['ARQUIVO']
+    xmi_file = parametros_script['ARQUIVO']
     print_code = parametros_script['--print-code']
     print_object = parametros_script['--print-objects']
     compilar = parametros_script['--compile']
     filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
-    code = generate(xml_file)
+    code = generate(xmi_file)
 
     # Escreve o código num arquivo.
     filename = filename if filename else 'generated_code.py'
@@ -56,10 +92,9 @@ if __name__ == '__main__':
 
     # Imprime os objetos das classes, caso informado.
     if print_object:
-        from u2p import get_classes
-        from u2p.util import print_classes
+        from util import print_classes
 
-        classes = get_classes(xml_file)
+        classes = get_classes(xmi_file)
         print_classes(classes)
 
     # Compila o código gerado para localizar erros.
