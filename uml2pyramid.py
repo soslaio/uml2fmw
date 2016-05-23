@@ -24,6 +24,10 @@ from docopt import docopt
 from u2p import generate
 from os import path
 
+__author__ = u'Rogério Pereira'
+__email__ = 'rogeriorp@gmail.com'
+__version__ = '1.0'
+
 __here = path.abspath(path.dirname(__file__))
 
 if __name__ == '__main__':

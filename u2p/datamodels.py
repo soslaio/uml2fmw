@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
+"""
+    Módulo com classes de dados que representam o documento XML.
+
+    Os principais atributos XML e tagged values são expostos para
+    através de propsiedades para facilitar o uso.
+"""
+
 from collections import OrderedDict
 
 
-# Classes de modelos de dados.
 class BaseXml:
     """ Objeto base para as classes de dados. """
 
@@ -13,7 +19,7 @@ class BaseXml:
     @property
     def name(self):
         """Nome do objeto."""
-        return self.xml_attributes['Name']
+        return self.xml_attributes['Name'] if 'Name' in self.xml_attributes.keys() else None
 
     @property
     def id(self):
@@ -30,13 +36,14 @@ class Atributo(BaseXml):
 
     @property
     def colander(self):
-        """"""
+        """Tagged values do atributo relacionados aos schemas do colander."""
         colander_attr = ['title', 'description', 'missing_msg', 'widget', 'validator', 'exclude', 'default']
         data = {tv.name: tv for tv in self.tagged_values if tv.name in colander_attr}
-        return TaggedValues(data=data)
+        return TaggedValues(data=data) if data is not None else None
 
     @property
     def tipo(self):
+        """Tipo de dados do atributo."""
         return self.xml_attributes['Type']
 
     def __repr__(self):
@@ -48,10 +55,12 @@ class TaggedValue(BaseXml):
 
     @property
     def value(self):
+        """Valor do tagged value."""
         return self.xml_attributes['Value']
 
     @property
     def tipo(self):
+        """Tipo de dados do tagged value."""
         return self.xml_attributes['Type']
 
 
@@ -62,87 +71,92 @@ class Classe(BaseXml):
         self.attributes = attributes
         self.xml_attributes = xml_attributes
         self.tagged_values = tagged_values
+        self.parents = OrderedDict()
+        self.children = OrderedDict()
 
     @property
     def tablename(self):
-        if not bool(self.parents):
-            return self.tagged_values['tablename'].value if 'tablename' in self.tagged_values.keys() else self.name.lower()
-        else:
-            return None
+        """Valor do tagged value 'tablename' da classe."""
+        return self.tagged_values['tablename'].value \
+            if 'tablename' in self.tagged_values.keys() else self.name.lower()
 
     @property
     def colander(self):
-        data = { tvk : self.tagged_values[tvk] for tvk in self.tagged_values.keys() if tvk in colander_class }
-        return TaggedValues(data=data)
+        """Tagged values da classe relacionados aos schemas do colander."""
+        colander_class = ['title', 'description']
+        data = {tvk: self.tagged_values[tvk] for tvk in self.tagged_values.keys() if tvk in colander_class}
+        return TaggedValues(data=data) if data is not None else None
 
     @property
     def polymorphic_identity(self):
+        """Valor do tagged value 'polymorphic_identity' da classe."""
         if bool(self.parents):
-            return self.tagged_values['polymorphic_identity'].value if 'polymorphic_identity' in self.tagged_values.keys() else self.name.lower()
+            return self.tagged_values['polymorphic_identity'].value \
+                if 'polymorphic_identity' in self.tagged_values.keys() else self.name.lower()
         else:
             return None
 
     @property
     def polymorphic_on(self):
+        """Valor do tagged value 'polymorphic_on' da classe."""
         if bool(self.children):
-            return self.tagged_values['polymorphic_on'].value if 'polymorphic_on' in self.tagged_values.keys() else 'tipo'
+            return self.tagged_values['polymorphic_on'].value \
+                if 'polymorphic_on' in self.tagged_values.keys() else 'tipo'
         else:
             return None
 
     def __repr__(self):
-        return "Classe '%s'" % self.name
+        return u"Classe '%s'" % self.name
 
 
 class Generalizacao(BaseXml):
     """Representação de uma generalização."""
 
     @property
-    def name(self):
-        raise ValueError(u'Generalizações não possuem nomes.')
-
-    @property
     def from_id(self):
+        """Classe de origem da relação."""
         return self.xml_attributes['From']
 
     @property
     def to_id(self):
+        """Classe de destino da relação."""
         return self.xml_attributes['To']
 
 
-# Classes de lista de dados.
 class TaggedValues:
     """Tagged values associados ao objeto XML."""
 
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
-            self._tagged_values = OrderedDict()
+            self.__tagged_values = OrderedDict()
             xmltaggedvalues = xmlobj.iterdescendants(tag="TaggedValue")
 
             if xmltaggedvalues is not None:
                 for taggedv in xmltaggedvalues:
                     tv = TaggedValue(taggedv.attrib)
-                    self._tagged_values[tv.name] = tv
+                    self.__tagged_values[tv.name] = tv
             else:
-                print 'Nenhum tagged value localizado.'
+                print u'Nenhum tagged value localizado.'
         elif data is not None:
-            self._tagged_values = data
+            self.__tagged_values = data
         else:
-            self._tagged_values = OrderedDict()
-
-    def __len__(self):
-        return len(self._tagged_values)
-    
-    def __getitem__(self, key):
-        return self._tagged_values[key]
-
-    def __iter__(self):
-        return self._tagged_values.itervalues()
+            self.__tagged_values = OrderedDict()
 
     def keys(self):
-        if self._tagged_values is not None:
-            return self._tagged_values.keys()
+        """Chaves do dicionário interno de tagged values."""
+        if self.__tagged_values is not None:
+            return self.__tagged_values.keys()
         else:
             return list()
+
+    def __len__(self):
+        return len(self.__tagged_values)
+    
+    def __getitem__(self, key):
+        return self.__tagged_values[key]
+
+    def __iter__(self):
+        return self.__tagged_values.itervalues()
 
 
 class Generalizacoes:
@@ -150,9 +164,9 @@ class Generalizacoes:
 
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
-            self._generalizacoes = dict()
-            xmlrelationship = xmlobj.Models.ModelRelationshipContainer
-            xmlgeneralizations = xmlrelationship.iterdescendants(tag="Generalization")
+            self.__generalizacoes = dict()
+            xmlcontainer = xmlobj.Models.ModelRelationshipContainer
+            xmlgeneralizations = xmlcontainer.iterdescendants(tag="Generalization")
 
             if xmlgeneralizations is not None:
                 for xmlgeneralization in xmlgeneralizations:
@@ -160,35 +174,36 @@ class Generalizacoes:
                     
                     # Gambiarra para evitar que sejam adicionadas generalizações em níveis abaixo do desejado.
                     if 'Id' in gen.xml_attributes.keys():
-                        self._generalizacoes[gen.id] = gen
+                        self.__generalizacoes[gen.id] = gen
             else:
                 print u'Nenhuma generalização localizada.'
         elif data is not None:
-            self._generalizacoes = data
+            self.__generalizacoes = data
         else:
-            self._generalizacoes = dict()
-
-    def __len__(self):
-        return len(self._generalizacoes)
-    
-    def __getitem__(self, key):
-        return self._generalizacoes[key]
+            self.__generalizacoes = dict()
 
     def keys(self):
-        if self._generalizacoes is not None:
-            return self._generalizacoes.keys()
+        """Chaves do dicionário interno de generelizações."""
+        if self.__generalizacoes is not None:
+            return self.__generalizacoes.keys()
         else:
             return list()
 
+    def __len__(self):
+        return len(self.__generalizacoes)
+    
+    def __getitem__(self, key):
+        return self.__generalizacoes[key]
+
     def __iter__(self):
-        return self._generalizacoes.itervalues()
+        return self.__generalizacoes.itervalues()
 
 
 class Atributos:
     """Atributos da classe."""
 
     def __init__(self, xmlclasse):
-        self._atributos = OrderedDict()
+        self.__atributos = OrderedDict()
         xmlatributos = xmlclasse.iterdescendants(tag="Attribute")
 
         if xmlatributos is not None:
@@ -199,24 +214,25 @@ class Atributos:
 
                 # Contrução do atributo e inclusão na lista de atributos de classe.
                 atributo = Atributo(xml_attributes, tagged_values)
-                self._atributos[atributo.name] = atributo
+                self.__atributos[atributo.name] = atributo
         else:
-            print 'Nenhum atributo localizado.'
-
-    def __len__(self):
-        return len(self._atributos)
-    
-    def __getitem__(self, key):
-        return self._atributos[key]
+            print u'Nenhum atributo localizado.'
 
     def keys(self):
-        if self._atributos is not None:
-            return self._atributos.keys()
+        """Chaves do dicionário interno de atributos."""
+        if self.__atributos is not None:
+            return self.__atributos.keys()
         else:
             return list()
 
+    def __len__(self):
+        return len(self.__atributos)
+    
+    def __getitem__(self, key):
+        return self.__atributos[key]
+
     def __iter__(self):
-        return self._atributos.itervalues()
+        return self.__atributos.itervalues()
 
 
 class Classes:
@@ -224,7 +240,7 @@ class Classes:
 
     def __init__(self, xmlobj=None, data=None):
         if xmlobj is not None:
-            self._classes = OrderedDict()
+            self.__classes = OrderedDict()
             xmlclasses = xmlobj.Models.Class
 
             if xmlclasses is not None:
@@ -236,30 +252,29 @@ class Classes:
 
                     # Cria o objeto Classe e adiciona na lista de classes.
                     classe = Classe(attributes, xml_attributes, tagged_values)
-                    self._classes[classe.id] = classe
-                            
+                    self.__classes[classe.id] = classe
             else:
-                print 'Nenhuma classe localizada.'
+                print u'Nenhuma classe localizada.'
         elif data is not None:
-            self._classes = data
+            self.__classes = data
         else:
-            self._classes = OrderedDict()
+            self.__classes = OrderedDict()
 
     def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
         # Define os filhos e pais das classes.
-        for classe in self._classes.itervalues():
+        for classe in self.__classes.itervalues():
             parents = OrderedDict()
             children = OrderedDict()
 
             for gen in generalizacoes:
                 # Localiza os filhos da classe.
                 if classe.id == gen.from_id:
-                    children[gen.to_id] = self._classes[gen.to_id]
+                    children[gen.to_id] = self.__classes[gen.to_id]
 
                 # Localiza os pais da classe.
                 if classe.id == gen.to_id:
-                    parents[gen.from_id] = self._classes[gen.from_id]
+                    parents[gen.from_id] = self.__classes[gen.from_id]
 
             if parents is not None:
                 classe.parents = Classes(data=parents)
@@ -268,16 +283,17 @@ class Classes:
                 classe.children = Classes(data=children)
 
     def keys(self):
-        if self._classes is not None:
-            return self._classes.keys()
+        """Chaves do dicionário interno de classes."""
+        if self.__classes is not None:
+            return self.__classes.keys()
         else:
             return list()
 
     def __len__(self):
-        return len(self._classes)
+        return len(self.__classes)
     
     def __getitem__(self, key):
-        return self._classes[key]
+        return self.__classes[key]
 
     def __iter__(self):
-        return self._classes.itervalues()
+        return self.__classes.itervalues()
