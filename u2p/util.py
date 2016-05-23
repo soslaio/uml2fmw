@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+    Módulo com métodos úteis para visualização das classes.
+"""
 
 
 def print_classes(classes):

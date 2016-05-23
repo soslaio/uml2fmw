@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
     Módulo com classes de dados que representam o documento XML.
 

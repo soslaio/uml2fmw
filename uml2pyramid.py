@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Script que transforma um modelo UML numa aplicação Pyramid.
 

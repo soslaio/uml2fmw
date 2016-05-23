@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+    Módulo com os principais métodos de geração de código a partir do UML.
+"""
 
 from lxml import objectify
 from chameleon import PageTemplate
