@@ -33,8 +33,6 @@ __email__ = 'rogeriorp@gmail.com'
 __version__ = '1.0'
 
 __here = abspath(dirname(__file__))
-__print_code = False
-__compile = False
 __classes = None
 
 
@@ -73,7 +71,8 @@ def generate(xml_file, template_file, classes=None):
 
 
 def generate_files(xml):
-    """Copia os arquivos do scaffold, interpretando os templates."""
+    """Gera os códigos python a partir dos dados do UML."""
+
     from_folder = join(__here, 'template')
     to_folder = join(__here, 'generated')
 
@@ -81,43 +80,36 @@ def generate_files(xml):
     copy_tree(from_folder, to_folder)
 
     # Busca os templates em todas as pastas copiadas.
-    templates = dict()
+    template_pyfile = dict()
     for root, dirs, files in walk(join(to_folder, 'u2p')):
-        templates[root] = glob.glob(join(root, '*.py.pt'))
+        for template in glob.glob(join(root, '*.py.pt')):
+            template_pyfile[template] = template.replace('.py.pt', '.py')
 
     # Gera os códigos finais a partir de cada template localizado.
-    for k in templates.keys():
-        for template in templates[k]:
-            # Gera o código a partir do template utilizando o XMI com os dados.
-            gen_code = generate(xml, template_file=template)
+    codes = dict()
+    for template in template_pyfile.keys():
+        # Gera o código a partir do template utilizando o XMI com os dados.
+        gen_code = generate(xml, template_file=template)
+        pyfile = template_pyfile[template]
+        codes[pyfile] = gen_code
 
-            # Escreve o código num arquivo.
-            gen_filename = template.replace('.py.pt', '.py')
-            with open(gen_filename, 'w') as tf:
-                tf.write(gen_code.encode('utf-8'))
-                tf.close()
+        # Escreve o código num arquivo.
+        with open(pyfile, 'w') as tf:
+            tf.write(gen_code.encode('utf-8'))
+            tf.close()
 
-            # Exlui o arquivo do template.
-            remove(template)
+        # Exlui o arquivo do template.
+        remove(template)
 
-            # Caso informado que o código seja impresso na tela.
-            if __print_code:
-                print(gen_code)
+    return codes
 
-    if __compile:
-        # Compila todos os arquivos localizados.
-        for folder in templates.keys():
-            for template in templates[folder]:
-                pyfile = template.replace('.py.pt', '.py')
-                print(u'\n\n#######\nCompilando %s\n#######\n' % pyfile)
 
-                # Lê e compila o arquivo de código python.
-                with open(pyfile) as pf:
-                    pycode = pf.read()
-                    compiled = compile(pycode, '', 'exec')
-                    exec compiled
+def compile_code(pyfile, pycode):
+    """Compila uma lista de arquivos python."""
+    print(u'\n\nCOMPILANDO %s\n' % pyfile)
 
-    return templates
+    compiled = compile(pycode, '', 'exec')
+    exec compiled
 
 
 if __name__ == '__main__':
@@ -126,14 +118,24 @@ if __name__ == '__main__':
 
     # Parâmetros do script.
     xml_file = parametros_script['ARQUIVO']
-    __print_code = parametros_script['--print-code']
+    print_code = parametros_script['--print-code']
     print_object = parametros_script['--print-objects']
-    __compile = parametros_script['--compile']
+    compile_param = parametros_script['--compile']
     filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
-    code = generate_files(xml_file)
+    codes = generate_files(xml_file)
+
+    # Caso informado que o código seja impresso na tela.
+    if print_code:
+        for f, code in codes.items():
+            print(code)
 
     # Imprime os objetos das classes, caso informado.
     if print_object:
         print(__classes)
+
+    # Caso solicitado, compila o código gerado.
+    if compile_param:
+        for f, code in codes.items():
+            compile_code(f, code.encode('utf-8'))
