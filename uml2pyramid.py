@@ -19,17 +19,21 @@ Options:
     --compile                   Indica se o código gerado deve ser compilado.
 """
 
+import glob
+from os import walk, remove
 from docopt import docopt
 from lxml import objectify
 from chameleon import PageTemplate
+from os.path import abspath, dirname, join
+from distutils.dir_util import copy_tree
 from datamodels import *
-from os import path
 
 __author__ = u'Rogério Pereira'
 __email__ = 'rogeriorp@gmail.com'
 __version__ = '1.0'
 
-__here = path.abspath(path.dirname(__file__))
+__here = abspath(dirname(__file__))
+__print_code = False
 __classes = None
 
 
@@ -51,14 +55,16 @@ def get_classes(xml_file):
     return __classes
 
 
-def generate(xml_file, classes=None):
+def generate(xml_file, template_file=None, classes=None):
     """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
     # Recebe a lista de classes presentes no arquivo XML, caso a lista não tenha sido repassada.
     if classes is None:
         classes = get_classes(xml_file)
 
     # Carregamento do template com os dados.
-    template_file = path.join(__here, 'template', 'u2p', 'u2p', 'models.py.pt')
+    if template_file is None:
+        template_file = join(__here, 'template', 'u2p', 'u2p', 'models.py.pt')
+
     with open(template_file) as tf:
         template_code = tf.read()
     template = PageTemplate(template_code)
@@ -67,34 +73,57 @@ def generate(xml_file, classes=None):
     return rendered
 
 
+def generate_files(xml):
+    """Copia os arquivos do scaffold, interpretando os templates."""
+    from_folder = join(__here, 'template')
+    to_folder = join(__here, 'generated')
+
+    # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
+    copy_tree(from_folder, to_folder)
+
+    # Busca os templates em todas as pastas copiadas.
+    templates = dict()
+    for root, dirs, files in walk(join(to_folder, 'u2p')):
+        templates[root] = glob.glob(join(root, '*.py.pt'))
+
+    # Gera os códigos finais a partir de cada template localizado.
+    for k in templates.keys():
+        for template in templates[k]:
+            # Gera o código a partir do template utilizando o XMI com os dados.
+            gen_code = generate(xml, template_file=template)
+
+            # Escreve o código num arquivo.
+            gen_filename = template.replace('.py.pt', '.py')
+            with open(gen_filename, 'w') as tf:
+                tf.write(gen_code.encode('utf-8'))
+                tf.close()
+
+            # Exlui o arquivo do template.
+            remove(template)
+
+            # Caso informado que o código seja impresso na tela.
+            if __print_code:
+                print(gen_code)
+
+    return templates
+
+
 if __name__ == '__main__':
     # Faz toda a macumba com os parâmetros da linha de comando <3.
     parametros_script = docopt(__doc__)
 
     # Parâmetros do script.
-    xmi_file = parametros_script['ARQUIVO']
-    print_code = parametros_script['--print-code']
+    xml_file = parametros_script['ARQUIVO']
+    __print_code = parametros_script['--print-code']
     print_object = parametros_script['--print-objects']
     compilar = parametros_script['--compile']
     filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
-    code = generate(xmi_file)
-
-    # Escreve o código num arquivo.
-    filename = filename if filename else 'generated_code.py'
-    code_file = path.join(__here, 'generated', filename)
-    with open(code_file, 'w') as cf:
-        cf.write(code.encode('utf-8'))
-        cf.close()
-
-    # Imprime o código, caso informado.
-    if print_code:
-        print(code)
+    code = generate_files(xml_file)
 
     # Imprime os objetos das classes, caso informado.
     if print_object:
-        # classes = get_classes(xmi_file)
         print(__classes)
 
     # Compila o código gerado para localizar erros.
