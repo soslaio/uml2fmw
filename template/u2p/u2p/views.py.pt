@@ -1,18 +1,18 @@
-from pyramid.response import Response
-from pyramid.view import view_config
 
-from sqlalchemy.exc import DBAPIError
+from pyramid.view import view_config
 
 from deform import Form, Button, ValidationFailure
 from colanderalchemy import SQLAlchemySchemaNode
 
-from .models import (
+from models import (
     DBSession,
     Pessoa,
     )
 
+
 @view_config(route_name='home', renderer='templates/pessoa.pt')
 def pessoa_view(request):
+    """Documentação do método."""
     dbschema = Pessoa()
     schema = dbschema.__colanderalchemy__
     bt = Button(name='enviar', value='Enviar')
@@ -24,6 +24,6 @@ def pessoa_view(request):
             form.validate(campos)
         except ValidationFailure, e:
             return {'form': e.render()}
-        return {'form': ('<br/>').join(['<b>%s</b> > %s' % (x[0], x[1]) for x in campos])}
+        return {'form': '<br/>'.join(['<b>%s</b> > %s' % (x[0], x[1]) for x in campos])}
 
     return {'form': form.render()}

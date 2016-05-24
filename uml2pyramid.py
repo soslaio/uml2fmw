@@ -34,6 +34,7 @@ __version__ = '1.0'
 
 __here = abspath(dirname(__file__))
 __print_code = False
+__compile = False
 __classes = None
 
 
@@ -45,6 +46,8 @@ def get_classes(xml_file):
 
     # Objetifica o xml e lê as classes.
     xmlobj = objectify.fromstring(xml)
+
+    # Carrega as classes numa variável global.
     global __classes
     __classes = Classes(xmlobj)
 
@@ -55,15 +58,11 @@ def get_classes(xml_file):
     return __classes
 
 
-def generate(xml_file, template_file=None, classes=None):
+def generate(xml_file, template_file, classes=None):
     """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
     # Recebe a lista de classes presentes no arquivo XML, caso a lista não tenha sido repassada.
     if classes is None:
         classes = get_classes(xml_file)
-
-    # Carregamento do template com os dados.
-    if template_file is None:
-        template_file = join(__here, 'template', 'u2p', 'u2p', 'models.py.pt')
 
     with open(template_file) as tf:
         template_code = tf.read()
@@ -105,6 +104,19 @@ def generate_files(xml):
             if __print_code:
                 print(gen_code)
 
+    if __compile:
+        # Compila todos os arquivos localizados.
+        for folder in templates.keys():
+            for template in templates[folder]:
+                pyfile = template.replace('.py.pt', '.py')
+                print(u'\n\n#######\nCompilando %s\n#######\n' % pyfile)
+
+                # Lê e compila o arquivo de código python.
+                with open(pyfile) as pf:
+                    pycode = pf.read()
+                    compiled = compile(pycode, '', 'exec')
+                    exec compiled
+
     return templates
 
 
@@ -116,7 +128,7 @@ if __name__ == '__main__':
     xml_file = parametros_script['ARQUIVO']
     __print_code = parametros_script['--print-code']
     print_object = parametros_script['--print-objects']
-    compilar = parametros_script['--compile']
+    __compile = parametros_script['--compile']
     filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
@@ -125,9 +137,3 @@ if __name__ == '__main__':
     # Imprime os objetos das classes, caso informado.
     if print_object:
         print(__classes)
-
-    # Compila o código gerado para localizar erros.
-    if compilar:
-        print()
-        compiled = compile(code, '', 'exec')
-        exec compiled
