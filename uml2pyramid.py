@@ -86,12 +86,12 @@ def generate_files(xml):
             template_pyfile[template] = template.replace('.py.pt', '.py')
 
     # Gera os códigos finais a partir de cada template localizado.
-    codes = dict()
+    file_code = dict()
     for template in template_pyfile.keys():
         # Gera o código a partir do template utilizando o XMI com os dados.
         gen_code = generate(xml, template_file=template)
         pyfile = template_pyfile[template]
-        codes[pyfile] = gen_code
+        file_code[pyfile] = gen_code
 
         # Escreve o código num arquivo.
         with open(pyfile, 'w') as tf:
@@ -101,15 +101,7 @@ def generate_files(xml):
         # Exlui o arquivo do template.
         remove(template)
 
-    return codes
-
-
-def compile_code(pyfile, pycode):
-    """Compila uma lista de arquivos python."""
-    print(u'\n\nCOMPILANDO %s\n' % pyfile)
-
-    compiled = compile(pycode, '', 'exec')
-    exec compiled
+    return file_code
 
 
 if __name__ == '__main__':
@@ -124,18 +116,21 @@ if __name__ == '__main__':
     filename = parametros_script['--filename']
 
     # Renderiza a aplicação.
-    codes = generate_files(xml_file)
+    file_code_result = generate_files(xml_file)
 
     # Caso informado que o código seja impresso na tela.
     if print_code:
-        for f, code in codes.items():
+        for f, code in file_code_result.items():
+            print(u'\n---- IMPRIMINDO ARQUIVO %s ----\n' % f)
             print(code)
 
     # Imprime os objetos das classes, caso informado.
     if print_object:
+        print(u'\n---- IMPRIMINDO CLASSES ----\n')
         print(__classes)
 
     # Caso solicitado, compila o código gerado.
     if compile_param:
-        for f, code in codes.items():
-            compile_code(f, code.encode('utf-8'))
+        for f, code in file_code_result.items():
+            print(u'\n---- COMPILANDO %s ----\n' % f)
+            execfile(f)
