@@ -5,7 +5,6 @@ Script que transforma um modelo UML numa aplicação Pyramid.
 Usage:
     uml2pyramid.py [--print-code | -c]
     [--print-objects | -o]
-    [--filename NAME| -n NAME]
     [--compile]
     ARQUIVO
 
@@ -15,12 +14,11 @@ Arguments:
 Options:
     -c, --print-code            Número do processo a ser analisado.
     -o, --print-objects         Filtrar pelo status dos processos.
-    -n NAME, --filename NAME    Nome do arquivo a ser gerado.
     --compile                   Indica se o código gerado deve ser compilado.
 """
 
-import generator as gen
 from docopt import docopt
+from generator import Generator
 
 __author__ = u'Rogério Pereira'
 __email__ = 'rogeriorp@gmail.com'
@@ -31,28 +29,26 @@ if __name__ == '__main__':
     # Faz toda a macumba com os parâmetros da linha de comando <3.
     parametros_script = docopt(__doc__)
 
-    # Parâmetros do script.
-    xml_file = parametros_script['ARQUIVO']
-    print_code = parametros_script['--print-code']
-    print_object = parametros_script['--print-objects']
-    compile_param = parametros_script['--compile']
-    filename = parametros_script['--filename']
-
     # Renderiza a aplicação.
-    file_code_result = gen.generate_files(xml_file)
+    xml_file = parametros_script['ARQUIVO']
+    generator = Generator(xml_file)
+    file_code_result = generator.generate()
 
     # Caso informado que o código seja impresso na tela.
+    print_code = parametros_script['--print-code']
     if print_code:
         for f, code in file_code_result.items():
             print(u'\n---- IMPRIMINDO ARQUIVO %s ----\n' % f)
             print(code)
 
     # Imprime os objetos das classes, caso informado.
+    print_object = parametros_script['--print-objects']
     if print_object:
         print(u'\n---- IMPRIMINDO CLASSES ----\n')
-        print(gen.__classes)
+        print(generator.classes)
 
     # Caso solicitado, compila o código gerado.
+    compile_param = parametros_script['--compile']
     if compile_param:
         for f, code in file_code_result.items():
             print(u'\n---- COMPILANDO %s ----\n' % f)

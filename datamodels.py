@@ -7,6 +7,7 @@
 """
 
 from collections import OrderedDict
+from lxml import objectify
 
 
 class BaseXml:
@@ -252,6 +253,10 @@ class Classes:
                     # Cria o objeto Classe e adiciona na lista de classes.
                     classe = Classe(attributes, xml_attributes, tagged_values)
                     self.__classes[classe.id] = classe
+
+                # Conecta as classes através da lista de generalizações.
+                generalizacoes = Generalizacoes(xmlobj)
+                self.connect(generalizacoes)
             else:
                 print u'Nenhuma classe localizada.'
         elif data is not None:
@@ -259,8 +264,23 @@ class Classes:
         else:
             self.__classes = OrderedDict()
 
+    @classmethod
+    def from_xml(cls, xml_file):
+        """Cria uma instância de classes a partir de um XML."""
+
+        # Lê o arquivo XML.
+        with open(xml_file) as xf:
+            xml = xf.read()
+
+        # Objetifica o xml e lê as classes.
+        xmlobj = objectify.fromstring(xml)
+
+        # Retorna o construtor.
+        return cls(xmlobj=xmlobj)
+
     def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
+
         # Define os filhos e pais das classes.
         for classe in self.__classes.itervalues():
             parents = OrderedDict()
