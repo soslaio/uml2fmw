@@ -21,8 +21,8 @@ from colanderalchemy import setup_schema
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 path = dirname(abspath(__file__))
+<tal:def define="classes project.classes">
 <tal:rep repeat="classe classes">
-
 class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.parents) else 'Base'}):
     <tal:cond condition="not bool(classe.parents)">
     __tablename__ = "${classe.tablename}"
@@ -43,3 +43,4 @@ class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.
 
 event.listen(${classe.name}, "mapper_configured", setup_schema)
 </tal:rep>
+</tal:def>

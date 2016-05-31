@@ -34,15 +34,15 @@ class Generator(object):
         copy_tree(from_folder, to_folder)
 
         # Mapeia os templates nas pastas copiadas, usando-os como chave para os arquivos de código python.
-        templates_and_pyfiles = {tf: tf.replace('.py.pt', '.py') for root, _, __ in walk(join(to_folder, 'u2p'))
-                                 for tf in glob.glob(join(root, '*.py.pt'))}
+        templates_and_genfiles = {tf: tf.replace('.u2p', '') for root, _, __ in walk(join(to_folder, 'u2p'))
+                                  for tf in glob.glob(join(root, '*.u2p'))}
 
         # Dicionário de arquivos python e seus respectivos códigos.
-        pyfiles_and_codes = dict()
-        for template_file, python_file in templates_and_pyfiles.items():
+        genfiles_and_codes = dict()
+        for template_file, python_file in templates_and_genfiles.items():
             # Gera o código a partir do template e adiciona ao dicionário de arquivos python e códigos.
             code = Template(template_file).render(self.project)
-            pyfiles_and_codes[python_file] = code
+            genfiles_and_codes[python_file] = code
 
             # Escreve o código num arquivo.
             with open(python_file, 'w') as pf:
@@ -51,7 +51,7 @@ class Generator(object):
             # Exlui o arquivo do template na pasta de destino.
             remove(template_file)
 
-        return pyfiles_and_codes
+        return genfiles_and_codes
 
 
 class Template(object):
@@ -61,9 +61,8 @@ class Template(object):
 
     def render(self, project):
         """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
-        classes = project.classes
         with open(self.__template) as tf:
             template_code = tf.read()
         template = PageTemplate(template_code)
-        rendered = template(classes=classes)
+        rendered = template(project=project)
         return rendered
