@@ -1,0 +1,3 @@
+[run]
+source = py3
+omit = py3/test*

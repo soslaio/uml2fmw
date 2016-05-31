@@ -47,7 +47,7 @@ class Atributo(Base):
         """Tipo de dados do atributo."""
         return self.xml_attributes['Type']
 
-    def __repr__(self):
+    def __str__(self):
         return "Atributo '%s' do tipo '%s'" % (self.name, self.tipo)
 
 
@@ -107,7 +107,7 @@ class Classe(Base):
         else:
             return None
 
-    def __repr__(self):
+    def __str__(self):
         return u"Classe '%s'" % self.name
 
 
@@ -123,6 +123,118 @@ class Generalizacao(Base):
     def to_id(self):
         """Classe de destino da relação."""
         return self.xml_attributes['To']
+
+
+# Classes containers.
+class Project(Base):
+    """Representação de um projeto."""
+
+    def __init__(self, xmlobj):
+        self.classes = Classes(xmlobj)
+        xml_attributes = xmlobj.attrib
+        super(Project, self).__init__(xml_attributes)
+
+    @classmethod
+    def from_xml(cls, xml_file):
+        """Cria uma instância de classes a partir de um XML."""
+
+        # Lê o arquivo XML.
+        with open(xml_file) as xf:
+            xml = xf.read()
+
+        # Objetifica o xml e lê as classes.
+        xmlobj = objectify.fromstring(xml)
+
+        # Retorna o construtor.
+        return cls(xmlobj=xmlobj)
+
+
+class Classes:
+    """Classes presentes no arquivo XML."""
+
+    def __init__(self, xmlobj=None, data=None):
+        if xmlobj is not None:
+            self.__classes = OrderedDict()
+            xmlclasses = xmlobj.Models.Class
+
+            if xmlclasses is not None:
+                for xmlclasse in xmlclasses:
+                    # Define os atributos da classe.
+                    attributes = Atributos(xmlclasse)
+                    xml_attributes = xmlclasse.attrib
+                    tagged_values = TaggedValues(xmlclasse)
+
+                    # Cria o objeto Classe e adiciona na lista de classes.
+                    classe = Classe(attributes, xml_attributes, tagged_values)
+                    self.__classes[classe.id] = classe
+
+                # Conecta as classes através da lista de generalizações.
+                generalizacoes = Generalizacoes(xmlobj)
+                self.connect(generalizacoes)
+            else:
+                print u'Nenhuma classe localizada.'
+        elif data is not None:
+            self.__classes = data
+        else:
+            self.__classes = OrderedDict()
+
+    def connect(self, generalizacoes):
+        """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
+
+        # Define os filhos e pais das classes.
+        for classe in self.__classes.itervalues():
+            parents = OrderedDict()
+            children = OrderedDict()
+
+            for gen in generalizacoes:
+                # Localiza os filhos da classe.
+                if classe.id == gen.from_id:
+                    children[gen.to_id] = self.__classes[gen.to_id]
+
+                # Localiza os pais da classe.
+                if classe.id == gen.to_id:
+                    parents[gen.from_id] = self.__classes[gen.from_id]
+
+            if parents is not None:
+                classe.parents = Classes(data=parents)
+
+            if children is not None:
+                classe.children = Classes(data=children)
+
+    def keys(self):
+        """Chaves do dicionário interno de classes."""
+        if self.__classes is not None:
+            return self.__classes.keys()
+        else:
+            return list()
+
+    def __len__(self):
+        return len(self.__classes)
+
+    def __getitem__(self, key):
+        return self.__classes[key]
+
+    def __iter__(self):
+        return self.__classes.itervalues()
+
+    def __str__(self):
+        strclass = ''
+        for k in self.__classes.keys():
+            classe = self.__classes[k]
+            strclass += '%s, ID: %s\n' % (classe, classe.id)
+            for atributo in classe.attributes:
+                strclass += '\t%s\n' % atributo
+
+            if bool(classe.children):
+                strclass += '\tFilhos:\n'
+                for children in classe.children:
+                    strclass += '\t   %s\n' % children
+
+            if bool(classe.parents):
+                strclass += '\tPais:\n'
+                for parents in classe.parents:
+                    strclass += '\t   %s\n' % parents
+        return strclass
 
 
 class TaggedValues:
@@ -235,105 +347,3 @@ class Atributos:
 
     def __iter__(self):
         return self.__atributos.itervalues()
-
-
-class Classes:
-    """Classes presentes no arquivo XML."""
-
-    def __init__(self, xmlobj=None, data=None):
-        if xmlobj is not None:
-            self.__classes = OrderedDict()
-            xmlclasses = xmlobj.Models.Class
-
-            if xmlclasses is not None:
-                for xmlclasse in xmlclasses:
-                    # Define os atributos da classe.
-                    attributes = Atributos(xmlclasse)
-                    xml_attributes = xmlclasse.attrib
-                    tagged_values = TaggedValues(xmlclasse)
-
-                    # Cria o objeto Classe e adiciona na lista de classes.
-                    classe = Classe(attributes, xml_attributes, tagged_values)
-                    self.__classes[classe.id] = classe
-
-                # Conecta as classes através da lista de generalizações.
-                generalizacoes = Generalizacoes(xmlobj)
-                self.connect(generalizacoes)
-            else:
-                print u'Nenhuma classe localizada.'
-        elif data is not None:
-            self.__classes = data
-        else:
-            self.__classes = OrderedDict()
-
-    @classmethod
-    def from_xml(cls, xml_file):
-        """Cria uma instância de classes a partir de um XML."""
-
-        # Lê o arquivo XML.
-        with open(xml_file) as xf:
-            xml = xf.read()
-
-        # Objetifica o xml e lê as classes.
-        xmlobj = objectify.fromstring(xml)
-
-        # Retorna o construtor.
-        return cls(xmlobj=xmlobj)
-
-    def connect(self, generalizacoes):
-        """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
-
-        # Define os filhos e pais das classes.
-        for classe in self.__classes.itervalues():
-            parents = OrderedDict()
-            children = OrderedDict()
-
-            for gen in generalizacoes:
-                # Localiza os filhos da classe.
-                if classe.id == gen.from_id:
-                    children[gen.to_id] = self.__classes[gen.to_id]
-
-                # Localiza os pais da classe.
-                if classe.id == gen.to_id:
-                    parents[gen.from_id] = self.__classes[gen.from_id]
-
-            if parents is not None:
-                classe.parents = Classes(data=parents)
-
-            if children is not None:
-                classe.children = Classes(data=children)
-
-    def keys(self):
-        """Chaves do dicionário interno de classes."""
-        if self.__classes is not None:
-            return self.__classes.keys()
-        else:
-            return list()
-
-    def __len__(self):
-        return len(self.__classes)
-
-    def __getitem__(self, key):
-        return self.__classes[key]
-
-    def __iter__(self):
-        return self.__classes.itervalues()
-
-    def __str__(self):
-        strclass = ''
-        for k in self.__classes.keys():
-            classe = self.__classes[k]
-            strclass += '%s, ID: %s\n' % (classe, classe.id)
-            for atributo in classe.attributes:
-                strclass += '\t%s\n' % atributo
-
-            if bool(classe.children):
-                strclass += '\tFilhos:\n'
-                for children in classe.children:
-                    strclass += '\t   %s\n' % children
-
-            if bool(classe.parents):
-                strclass += '\tPais:\n'
-                for parents in classe.parents:
-                    strclass += '\t   %s\n' % parents
-        return strclass

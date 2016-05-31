@@ -45,7 +45,7 @@ if __name__ == '__main__':
     print_object = parametros_script['--print-objects']
     if print_object:
         print(u'\n---- IMPRIMINDO CLASSES ----\n')
-        print(generator.classes)
+        print(generator.project.classes)
 
     # Caso solicitado, compila o código gerado.
     compile_param = parametros_script['--compile']

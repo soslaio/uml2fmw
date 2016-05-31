@@ -13,19 +13,22 @@ from os import walk, remove
 from os.path import abspath, dirname, join
 from datamodels import *
 
+SCAFFOLD_FOLDER = 'scaffold'
+GENERATED_FOLDER = 'generated'
+
 
 class Generator(object):
     """Classe geradora de código."""
 
     def __init__(self, xml_file):
-        self.classes = Classes.from_xml(xml_file)
+        self.project = Project.from_xml(xml_file)
 
     def generate(self):
         """Gera o código da aplicação Pyramid a partir do XML."""
 
         # Definição de diretótios de origem e destino.
         here = abspath(dirname(__file__))
-        from_folder, to_folder = (join(here, 'template'), join(here, 'generated'))
+        from_folder, to_folder = (join(here, SCAFFOLD_FOLDER), join(here, GENERATED_FOLDER))
 
         # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
         copy_tree(from_folder, to_folder)
@@ -38,7 +41,7 @@ class Generator(object):
         pyfiles_and_codes = dict()
         for template_file, python_file in templates_and_pyfiles.items():
             # Gera o código a partir do template e adiciona ao dicionário de arquivos python e códigos.
-            code = Template(template_file).render(self.classes)
+            code = Template(template_file).render(self.project)
             pyfiles_and_codes[python_file] = code
 
             # Escreve o código num arquivo.
@@ -56,8 +59,9 @@ class Template(object):
     def __init__(self, template):
         self.__template = template
 
-    def render(self, classes):
+    def render(self, project):
         """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
+        classes = project.classes
         with open(self.__template) as tf:
             template_code = tf.read()
         template = PageTemplate(template_code)
