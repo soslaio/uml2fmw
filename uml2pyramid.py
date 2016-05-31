@@ -32,12 +32,12 @@ if __name__ == '__main__':
     # Renderiza a aplicação.
     xml_file = parametros_script['ARQUIVO']
     generator = Generator(xml_file)
-    file_code_result = generator.generate()
+    pyfiles_and_codes = generator.generate()
 
     # Caso informado que o código seja impresso na tela.
     print_code = parametros_script['--print-code']
     if print_code:
-        for f, code in file_code_result.items():
+        for f, code in pyfiles_and_codes.items():
             print(u'\n---- IMPRIMINDO ARQUIVO %s ----\n' % f)
             print(code)
 
@@ -50,6 +50,6 @@ if __name__ == '__main__':
     # Caso solicitado, compila o código gerado.
     compile_param = parametros_script['--compile']
     if compile_param:
-        for f, code in file_code_result.items():
+        for f in pyfiles_and_codes.keys():
             print(u'\n---- COMPILANDO %s ----\n' % f)
             execfile(f)

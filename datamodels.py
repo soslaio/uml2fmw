@@ -151,7 +151,7 @@ class TaggedValues:
 
     def __len__(self):
         return len(self.__tagged_values)
-    
+
     def __getitem__(self, key):
         return self.__tagged_values[key]
 
@@ -171,7 +171,7 @@ class Generalizacoes:
             if xmlgeneralizations is not None:
                 for xmlgeneralization in xmlgeneralizations:
                     gen = Generalizacao(xmlgeneralization.attrib)
-                    
+
                     # Gambiarra para evitar que sejam adicionadas generalizações em níveis abaixo do desejado.
                     if 'Id' in gen.xml_attributes.keys():
                         self.__generalizacoes[gen.id] = gen
@@ -191,7 +191,7 @@ class Generalizacoes:
 
     def __len__(self):
         return len(self.__generalizacoes)
-    
+
     def __getitem__(self, key):
         return self.__generalizacoes[key]
 
@@ -227,7 +227,7 @@ class Atributos:
 
     def __len__(self):
         return len(self.__atributos)
-    
+
     def __getitem__(self, key):
         return self.__atributos[key]
 
@@ -310,7 +310,7 @@ class Classes:
 
     def __len__(self):
         return len(self.__classes)
-    
+
     def __getitem__(self, key):
         return self.__classes[key]
 
