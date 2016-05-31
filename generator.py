@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+    Módulo do gerador de códigos.
+
+    Possui as classes e métodos que geram o código da aplicação Pyramid a partir de um scaffold localizado na pasta
+    'template' e dos dados objectificados do arquivo XML exportado do modelo UML.
+"""
 
 import glob
 from distutils.dir_util import copy_tree

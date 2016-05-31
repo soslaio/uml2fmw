@@ -10,7 +10,7 @@ from collections import OrderedDict
 from lxml import objectify
 
 
-class BaseXml:
+class Base(object):
     """ Objeto base para as classes de dados. """
 
     def __init__(self, xml_attributes):
@@ -27,12 +27,13 @@ class BaseXml:
         return self.xml_attributes['Id']
 
 
-class Atributo(BaseXml):
+class Atributo(Base):
     """Atributo de uma classe."""
 
     def __init__(self, xml_attributes, tagged_values):
         self.xml_attributes = xml_attributes
         self.tagged_values = tagged_values
+        super(Atributo, self).__init__(self.xml_attributes)
 
     @property
     def colander(self):
@@ -50,7 +51,7 @@ class Atributo(BaseXml):
         return "Atributo '%s' do tipo '%s'" % (self.name, self.tipo)
 
 
-class TaggedValue(BaseXml):
+class TaggedValue(Base):
     """Objeto que representa um tagged value."""
 
     @property
@@ -64,7 +65,7 @@ class TaggedValue(BaseXml):
         return self.xml_attributes['Type']
 
 
-class Classe(BaseXml):
+class Classe(Base):
     """Objeto que representa uma classe."""
 
     def __init__(self, attributes, xml_attributes, tagged_values):
@@ -73,6 +74,7 @@ class Classe(BaseXml):
         self.tagged_values = tagged_values
         self.parents = OrderedDict()
         self.children = OrderedDict()
+        super(Classe, self).__init__(xml_attributes)
 
     @property
     def tablename(self):
@@ -109,7 +111,7 @@ class Classe(BaseXml):
         return u"Classe '%s'" % self.name
 
 
-class Generalizacao(BaseXml):
+class Generalizacao(Base):
     """Representação de uma generalização."""
 
     @property
