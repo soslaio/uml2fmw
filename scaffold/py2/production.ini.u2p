@@ -4,7 +4,7 @@
 ###
 
 [app:main]
-use = egg:u2p
+use = egg:${project.name}
 
 pyramid.reload_templates = false
 pyramid.debug_authorization = false
@@ -14,7 +14,7 @@ pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_tm
 
-sqlalchemy.url = sqlite:///%(here)s/u2p.sqlite
+sqlalchemy.url = sqlite:///%(here)s/${project.name}.sqlite
 
 [server:main]
 use = egg:waitress#main
@@ -27,7 +27,7 @@ port = 6543
 ###
 
 [loggers]
-keys = root, u2p, sqlalchemy
+keys = root, ${project.name}, sqlalchemy
 
 [handlers]
 keys = console
@@ -39,10 +39,10 @@ keys = generic
 level = WARN
 handlers = console
 
-[logger_u2p]
+[logger_${project.name}]
 level = WARN
 handlers =
-qualname = u2p
+qualname = ${project.name}
 
 [logger_sqlalchemy]
 level = WARN

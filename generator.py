@@ -9,12 +9,23 @@
 import glob
 from distutils.dir_util import copy_tree
 from chameleon import PageTemplate
-from os import walk, remove
-from os.path import abspath, dirname, join
+from shutil import rmtree
+from os import walk, remove, rename
+from os.path import abspath, dirname, join, exists
 from datamodels import *
 
 SCAFFOLD_FOLDER = 'scaffold'
 GENERATED_FOLDER = 'generated'
+here = abspath(dirname(__file__))
+
+
+def read_yaml(key):
+    """Lê parâmetros do arquivo de configuração YAML."""
+    import yaml
+    yaml_file = join(here, 'config.yml')
+    with open(yaml_file, 'r') as f:
+        d = yaml.load(f)
+    return d[key]
 
 
 class Generator(object):
@@ -25,16 +36,25 @@ class Generator(object):
 
     def generate(self):
         """Gera o código da aplicação Pyramid a partir do XML."""
+        # Lê o scaffold a ser utilizado e mapeia as pastas de origem e destino da cópia.
+        scaffold = read_yaml('scaffold')
+        from_folder = join(here, SCAFFOLD_FOLDER, scaffold)
+        to_folder = join(here, GENERATED_FOLDER, self.project.name)
 
-        # Definição de diretótios de origem e destino.
-        here = abspath(dirname(__file__))
-        from_folder, to_folder = (join(here, SCAFFOLD_FOLDER), join(here, GENERATED_FOLDER))
+        # Caso o diretório destino já exista, exclui.
+        if exists(to_folder):
+            rmtree(to_folder)
 
         # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
         copy_tree(from_folder, to_folder)
 
+        # Renomeia a paste do módulo.
+        template_module = join(to_folder, scaffold)
+        generated_module = join(to_folder, self.project.name)
+        rename(template_module, generated_module)
+
         # Mapeia os templates nas pastas copiadas, usando-os como chave para os arquivos de código python.
-        templates_and_genfiles = {tf: tf.replace('.u2p', '') for root, _, __ in walk(join(to_folder, 'u2p'))
+        templates_and_genfiles = {tf: tf.replace('.u2p', '') for root, _, __ in walk(join(to_folder))
                                   for tf in glob.glob(join(root, '*.u2p'))}
 
         # Dicionário de arquivos python e seus respectivos códigos.

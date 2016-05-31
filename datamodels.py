@@ -148,6 +148,11 @@ class Project(Base):
         # Retorna o construtor.
         return cls(xmlobj=xmlobj)
 
+    @property
+    def author(self):
+        """Author do projeto."""
+        return self.xml_attributes['Author']
+
 
 class Classes:
     """Classes presentes no arquivo XML."""
