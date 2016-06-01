@@ -14,8 +14,6 @@ from os import walk, remove, rename
 from os.path import abspath, dirname, join, exists
 from datamodels import *
 
-SCAFFOLD_FOLDER = 'scaffold'
-GENERATED_FOLDER = 'generated'
 here = abspath(dirname(__file__))
 
 
@@ -38,8 +36,8 @@ class Generator(object):
         """Gera o código da aplicação Pyramid a partir do XML."""
         # Lê o scaffold a ser utilizado e mapeia as pastas de origem e destino da cópia.
         scaffold = read_yaml('scaffold')
-        from_folder = join(here, SCAFFOLD_FOLDER, scaffold)
-        to_folder = join(here, GENERATED_FOLDER, self.project.name)
+        from_folder = join(here, 'scaffolds', scaffold)
+        to_folder = join(here, 'generated', self.project.name)
 
         # Caso o diretório destino já exista, exclui.
         if exists(to_folder):
@@ -48,7 +46,7 @@ class Generator(object):
         # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
         copy_tree(from_folder, to_folder)
 
-        # Renomeia a paste do módulo.
+        # Renomeia a pasta do módulo.
         template_module = join(to_folder, scaffold)
         generated_module = join(to_folder, self.project.name)
         rename(template_module, generated_module)
