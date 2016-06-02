@@ -1,0 +1,20 @@
+<html>
+    <head>
+        <script type="text/javascript" src="deform/scripts/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="deform/scripts/deform.js"></script>
+        <script type="text/javascript" src="deform/scripts/jquery.form-3.09.js"></script>
+        <script type="text/javascript" src="deform/scripts/jquery.maskedinput-1.2.2.min.js"></script>
+        <script type="text/javascript" src="deform/scripts/jquery-ui-1.8.11.custom.min.js"></script>
+        <script type="text/javascript" src="deform/scripts/modernizr.custom.input-types-and-atts.js"></script>
+        <link rel="stylesheet" href="deform/css/form.css" type="text/css" />
+        <link rel="stylesheet" href="deform/css/jquery.autocomplete.css" type="text/css" />
+        <link rel="stylesheet" href="deform/css/ui-lightness/jquery-ui-1.8.11.custom.css" type="text/css" />
+        <link rel="stylesheet" href="${request.static_url('alchemyscaffold:static/custom.css')}" />
+        <title>Pessoa</title>
+    </head>
+    <body>
+        <h1>Cadastro de alguma coisa</h1>
+        <p>Preencha os formulários abaixo.</p>
+        <div tal:replace="structure form" />
+    </body>
+</html>

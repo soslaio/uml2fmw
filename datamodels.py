@@ -6,6 +6,7 @@
     através de propsiedades para facilitar o uso.
 """
 
+from UserDict import UserDict
 from collections import OrderedDict
 from lxml import objectify
 
@@ -20,6 +21,11 @@ class Base(object):
     def name(self):
         """Nome do objeto."""
         return self.xml_attributes['Name'] if 'Name' in self.xml_attributes.keys() else None
+
+    @property
+    def lower_name(self):
+        """Nome do objeto em caixa baixa."""
+        return self.name.lower()
 
     @property
     def id(self):
@@ -209,14 +215,14 @@ class Classes:
             self.__classes = OrderedDict()
 
     @property
-    def main_classes(self):
+    def view_classes(self):
         """Lista de classes principais."""
-        main_classes = list()
+        view_classes = list()
         for classe in self.__classes.itervalues():
             for stereotype in classe.stereotypes:
-                if stereotype.name == 'focus':
-                    main_classes.append(classe)
-        return main_classes
+                if stereotype.name == 'view_class':
+                    view_classes.append(classe)
+        return view_classes
 
     def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""

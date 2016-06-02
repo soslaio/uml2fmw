@@ -6,7 +6,7 @@ from .models import (
     Base,
     )
 
-
+<tal:def define="classes project.classes">
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -17,5 +17,9 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
+    <tal:rep repeat="classe classes">
+    config.add_route('${classe.lower_name}', '/${classe.lower_name}')
+    </tal:rep>
     config.scan()
     return config.make_wsgi_app()
+</tal:def>

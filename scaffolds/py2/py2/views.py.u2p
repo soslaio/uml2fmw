@@ -4,17 +4,24 @@ from pyramid.view import view_config
 
 from deform import Form, Button, ValidationFailure
 from colanderalchemy import SQLAlchemySchemaNode
-
+<tal:def define="view_classes project.classes.view_classes">
 from models import (
     DBSession,
-    Pessoa,
+    <tal:rep repeat="classe view_classes">
+    ${classe.name},
+    </tal:rep>
     )
 
+@view_config(route_name='home', renderer='templates/home.pt')
+def home_view(request):
+    """View da página principal."""
+    return {'view_classes': view_classes}
 
-@view_config(route_name='home', renderer='templates/pessoa.pt')
-def pessoa_view(request):
-    """Documentação do método."""
-    dbschema = Pessoa()
+<tal:rep repeat="classe view_classes">
+@view_config(route_name='${classe.lower_name}', renderer='templates/default.pt')
+def ${classe.lower_name}_view(request):
+    """View da classe ${classe.lower_name}."""
+    alchemy_schema = ${classe.name}()
     schema = dbschema.__colanderalchemy__
     bt = Button(name='enviar', value='Enviar')
     form = Form(schema, buttons=(bt,))
@@ -28,3 +35,5 @@ def pessoa_view(request):
         return {'form': '<br/>'.join(['<b>%s</b> > %s' % (x[0], x[1]) for x in campos])}
 
     return {'form': form.render()}
+</tal:rep>
+</tal:def>
