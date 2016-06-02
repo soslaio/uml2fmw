@@ -68,12 +68,13 @@ class TaggedValue(Base):
 class Classe(Base):
     """Objeto que representa uma classe."""
 
-    def __init__(self, attributes, xml_attributes, tagged_values):
+    def __init__(self, attributes, xml_attributes, tagged_values, stereotypes=None):
         self.attributes = attributes
         self.xml_attributes = xml_attributes
         self.tagged_values = tagged_values
         self.parents = OrderedDict()
         self.children = OrderedDict()
+        self.stereotypes = stereotypes
         super(Classe, self).__init__(xml_attributes)
 
     @property
@@ -154,6 +155,29 @@ class Project(Base):
         return self.xml_attributes['Author']
 
 
+class Stereotype(Base):
+    """Representação de um esteriótipo."""
+
+
+class Stereotypes:
+    """Lista de estereótipos de um objeto."""
+    def __init__(self, xmlobj):
+        self.__stereotypes = list()
+        xmlstereotypes = xmlobj.iterdescendants(tag="Stereotype")
+
+        if xmlstereotypes is not None:
+            for xmlstereotype in xmlstereotypes:
+                xml_attributes = xmlstereotype.attrib
+                stereotype = Stereotype(xml_attributes)
+                self.__stereotypes.append(stereotype)
+
+    def __len__(self):
+        return len(self.__stereotypes)
+
+    def __getitem__(self, item):
+        return self.__stereotypes[item]
+
+
 class Classes:
     """Classes presentes no arquivo XML."""
 
@@ -168,9 +192,10 @@ class Classes:
                     attributes = Atributos(xmlclasse)
                     xml_attributes = xmlclasse.attrib
                     tagged_values = TaggedValues(xmlclasse)
+                    stereotypes = Stereotypes(xmlclasse)
 
                     # Cria o objeto Classe e adiciona na lista de classes.
-                    classe = Classe(attributes, xml_attributes, tagged_values)
+                    classe = Classe(attributes, xml_attributes, tagged_values, stereotypes=stereotypes)
                     self.__classes[classe.id] = classe
 
                 # Conecta as classes através da lista de generalizações.
@@ -182,6 +207,16 @@ class Classes:
             self.__classes = data
         else:
             self.__classes = OrderedDict()
+
+    @property
+    def main_classes(self):
+        """Lista de classes principais."""
+        main_classes = list()
+        for classe in self.__classes.itervalues():
+            for stereotype in classe.stereotypes:
+                if stereotype.name == 'focus':
+                    main_classes.append(classe)
+        return main_classes
 
     def connect(self, generalizacoes):
         """Analisa a lista de generalizações recebida e faz as relações entre as classes."""

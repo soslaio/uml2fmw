@@ -2,4 +2,7 @@
 scaffold: py2
 
 # Pasta base para o encurtamento de pastas.
-basepath: 'uml2pyramid'
+basepath: uml2pyramid
+
+# Extensão utilizada para os templates.
+template_extension: u2p

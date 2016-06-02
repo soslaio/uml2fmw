@@ -3,7 +3,7 @@
     Módulo do gerador de códigos.
 
     Possui as classes e métodos que geram o código da aplicação Pyramid a partir de um scaffold localizado na pasta
-    'template' e dos dados objectificados do arquivo XML exportado do modelo UML.
+    'scaffolds' e dos dados objectificados do arquivo XML exportado do modelo UML.
 """
 
 import glob
@@ -52,12 +52,15 @@ class Generator(object):
         rename(template_module, generated_module)
 
         # Mapeia os templates nas pastas copiadas, usando-os como chave para os arquivos de código python.
-        templates_and_genfiles = {tf: tf.replace('.u2p', '') for root, _, __ in walk(join(to_folder))
-                                  for tf in glob.glob(join(root, '*.u2p'))}
+        template_extension = read_yaml('template_extension')
+        templates_and_genfiles = {tf: tf.replace('.%s' % template_extension, '') for root, _, __ in walk(join(to_folder))
+                                  for tf in glob.glob(join(root, '*.%s' % template_extension))}
         logger.debug(u'Templates e seus respectivos arquivos: %s' % templates_and_genfiles)
 
         # Dicionário de arquivos python e seus respectivos códigos.
         genfiles_and_codes = dict()
+
+        # Faz a renderização dos templates.
         logger.info(u'Iniciando renderiação dos templates.')
         for template_file, python_file in templates_and_genfiles.items():
             # Gera o código a partir do template e adiciona ao dicionário de arquivos python e códigos.
@@ -84,7 +87,7 @@ class Template(object):
         """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
         # Instancia o logger.
         logger = logging.getLogger('render')
-        logger.info(u'Renderizado arquivo "%s"' % short_dir(self.__template))
+        logger.info(u'Renderizando "%s"' % short_dir(self.__template))
 
         with open(self.__template) as tf:
             template_code = tf.read()
