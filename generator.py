@@ -12,28 +12,11 @@ from distutils.dir_util import copy_tree
 from chameleon import PageTemplate
 from shutil import rmtree
 from os import walk, remove, rename
-from os.path import abspath, dirname, join, exists, sep
+from os.path import abspath, dirname, join, exists
+from util import read_yaml, short_dir
 from datamodels import *
 
 here = abspath(dirname(__file__))
-
-
-def read_yaml(key):
-    """Lê parâmetros do arquivo de configuração YAML."""
-    import yaml
-    yaml_file = join(here, 'config.yml')
-    with open(yaml_file, 'r') as f:
-        d = yaml.load(f)
-    return d[key]
-
-
-def short_dir(path):
-    """Retorna o caminho encurtado para a pasta"""
-    basepath = read_yaml('basepath')
-    spath = path.split(sep)
-    i = spath.index(basepath) + 1
-    sdir = sep.join(spath[i:])
-    return '~%s%s' % (sep, sdir)
 
 
 class Generator(object):
@@ -57,15 +40,15 @@ class Generator(object):
             rmtree(to_folder)
 
         # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
-        logger.info(u'Copiando arquivos da pasta "%s" para a pasta "%s"' % (short_dir(from_folder),
-                                                                            short_dir(to_folder)))
+        logger.info(u'Copiando arquivos de "%s" para "%s"' % (short_dir(from_folder),
+                                                              short_dir(to_folder)))
         copy_tree(from_folder, to_folder)
 
         # Renomeia a pasta do módulo.
         template_module = join(to_folder, scaffold)
         generated_module = join(to_folder, self.project.name)
-        logger.info(u'Renomeando pasta "%s" para "%s"' % (short_dir(template_module),
-                                                          short_dir(generated_module)))
+        logger.info(u'Renomeando "%s" para "%s"' % (short_dir(template_module),
+                                                    short_dir(generated_module)))
         rename(template_module, generated_module)
 
         # Mapeia os templates nas pastas copiadas, usando-os como chave para os arquivos de código python.

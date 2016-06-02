@@ -4,16 +4,18 @@ Script que transforma um modelo UML numa aplicação Pyramid.
 
 Usage:
     uml2pyramid.py
-    [--log-classes | -c]
+    [--show-code | -c]
+    [--show-object | -o]
     [--compile]
     ARQUIVO
 
 Arguments:
-    ARQUIVO                     Arquivo XML do modelo.
+    ARQUIVO                   Arquivo XML do modelo.
 
 Options:
-    -c, --log-classes         Loga as classes, ao invés do código gerado.
-    --compile                   Indica se o código gerado deve ser compilado.
+    -c, --show-code           Mostra o código gerado no log.
+    -o, --show-object         Mostra os objetos das classes geradas.
+    --compile                 Indica se o código python gerado deve ser compilado.
 """
 
 import logging
@@ -34,19 +36,19 @@ if __name__ == '__main__':
     parametros_script = docopt(__doc__)
 
     # Renderiza a aplicação.
-    xml_file = parametros_script['ARQUIVO']
-    generator = Generator(xml_file)
+    generator = Generator(parametros_script['ARQUIVO'])
     logger.info(u'Iniciando geração da aplicação.')
     genfiles_and_codes = generator.generate()
     logger.info(u'Aplicação gerada com sucesso.')
 
-    # Caso informado que o código seja impresso na tela.
-    log_classes = parametros_script['--log-classes']
-    if log_classes:
-        logger.info(u'Classes no arquivo XML:\n%s' % generator.project.classes)
-    else:
+    # Caso informado, loga o código.
+    if parametros_script['--show-code']:
         for genfile, code in genfiles_and_codes.items():
             logger.info(u'Código do arquivo "%s":\n%s' % (genfile, code))
+
+    # Caso informado, loga o objeto das classes.
+    if parametros_script['--show-object']:
+        logger.info(u'Classes no arquivo XML:\n%s' % generator.project.classes)
 
     # Caso solicitado, compila o código gerado.
     compile_param = parametros_script['--compile']
