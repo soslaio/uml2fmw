@@ -1,5 +1,5 @@
 # Scaffold a ser utilizado para a renderização da aplicação.
-scaffold: py2
+scaffold: pyramid_1_7
 
 # Pasta base para o encurtamento de pastas.
 basepath: uml2pyramid
