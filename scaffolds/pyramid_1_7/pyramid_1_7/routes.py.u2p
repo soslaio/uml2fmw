@@ -1,5 +1,6 @@
 def includeme(config):
     config.add_static_view('static', 'static', cache_max_age=3600)
+    config.add_static_view('deform', 'deform:static')
     config.add_route('home', '/')
     <tal:rep repeat="classe project.classes.view_classes">
     config.add_route('${classe.lower_name}', '/${classe.lower_name}')

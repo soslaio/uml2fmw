@@ -6,7 +6,6 @@
     através de propsiedades para facilitar o uso.
 """
 
-from UserDict import UserDict
 from collections import OrderedDict
 from lxml import objectify
 
@@ -20,7 +19,7 @@ class Base(object):
     @property
     def name(self):
         """Nome do objeto."""
-        return self.xml_attributes['Name'] if 'Name' in self.xml_attributes.keys() else None
+        return self.xml_attributes['Name'] if 'Name' in self.xml_attributes.keys() else ''
 
     @property
     def lower_name(self):
@@ -60,15 +59,34 @@ class Atributo(Base):
 class TaggedValue(Base):
     """Objeto que representa um tagged value."""
 
+    def __init__(self, xml_attributes, xmlobj=None):
+        self.xml_attributes = xml_attributes
+        self.datatype = dict()
+        if 'Value' not in self.xml_attributes.keys():
+            xmldatatypes = xmlobj.iterdescendants(tag="DataType")
+            for dt in xmldatatypes:
+                self.datatype = dt.attrib
+        super(TaggedValue, self).__init__(self.xml_attributes)
+
+    @property
+    def widget_related_name(self):
+        """Nome de um tagged value relacionado ao widget."""
+        return self.name.split(':')[1]
+
     @property
     def value(self):
         """Valor do tagged value."""
-        return self.xml_attributes['Value']
+        if 'Value' in self.xml_attributes.keys():
+            return self.xml_attributes['Value']
+        elif bool(self.datatype):
+            return self.datatype['Name']
+        else:
+            return ''
 
     @property
     def tipo(self):
         """Tipo de dados do tagged value."""
-        return self.xml_attributes['Type']
+        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else ''
 
 
 class Classe(Base):
@@ -293,7 +311,7 @@ class TaggedValues:
 
             if xmltaggedvalues is not None:
                 for taggedv in xmltaggedvalues:
-                    tv = TaggedValue(taggedv.attrib)
+                    tv = TaggedValue(taggedv.attrib, taggedv)
                     self.__tagged_values[tv.name] = tv
             else:
                 print u'Nenhum tagged value localizado.'
@@ -301,6 +319,19 @@ class TaggedValues:
             self.__tagged_values = data
         else:
             self.__tagged_values = OrderedDict()
+
+    @property
+    def widget_related(self):
+        """Tagged values relacionados ao widget."""
+        data = OrderedDict({k: self.__tagged_values[k] for k in self.__tagged_values.keys() if k.find(':') != -1})
+        return TaggedValues(data=data)
+
+    @property
+    def not_widget_related(self):
+        """Tagged values não relacionados ao widget."""
+        data = OrderedDict({k: self.__tagged_values[k]
+                            for k in self.__tagged_values.keys() if k not in self.widget_related.keys()})
+        return TaggedValues(data=data)
 
     def keys(self):
         """Chaves do dicionário interno de tagged values."""

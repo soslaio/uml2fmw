@@ -1,0 +1,11 @@
+#wrapper {
+    margin: 2em;
+}
+
+.form-control {
+    width: inherit;
+}
+
+.deform fieldset {
+    border: none;
+}
