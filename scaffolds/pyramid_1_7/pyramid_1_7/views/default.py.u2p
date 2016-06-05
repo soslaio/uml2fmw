@@ -6,7 +6,7 @@ from deform import Form, Button, ValidationFailure
 from colanderalchemy import SQLAlchemySchemaNode
 from ..models import *
 <tal:def define="view_classes project.classes.view_classes">
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
+@view_config(route_name='home', renderer='../templates/home.jinja2')
 def home_view(request):
     """View da página principal."""
     return {'view_classes': {}}
