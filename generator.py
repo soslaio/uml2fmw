@@ -55,7 +55,6 @@ class Generator(object):
         template_extension = read_yaml('template_extension')
         templates_and_genfiles = {tf: tf.replace('.%s' % template_extension, '') for root, _, __ in walk(join(to_folder))
                                   for tf in glob.glob(join(root, '*.%s' % template_extension))}
-        logger.debug(u'Templates e seus respectivos arquivos: %s' % templates_and_genfiles)
 
         # Dicionário de arquivos python e seus respectivos códigos.
         genfiles_and_codes = dict()

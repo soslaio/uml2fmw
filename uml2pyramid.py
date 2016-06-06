@@ -36,8 +36,8 @@ if __name__ == '__main__':
     parametros_script = docopt(__doc__)
 
     # Renderiza a aplicação.
-    generator = Generator(parametros_script['ARQUIVO'])
     logger.info(u'Iniciando geração da aplicação.')
+    generator = Generator(parametros_script['ARQUIVO'])
     genfiles_and_codes = generator.generate()
     logger.info(u'Aplicação gerada com sucesso.')
 

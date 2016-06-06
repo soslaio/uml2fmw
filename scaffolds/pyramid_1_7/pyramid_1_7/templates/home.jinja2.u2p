@@ -19,7 +19,7 @@
             <h1>Páginas</h1>
             <ul>
             <tal:repeat repeat="classe project.classes.view_classes">
-                <li><a href="{{request.application_url}}/${classe.lower_name}">${classe.name}</a></li>
+                <li><a href="{{request.application_url}}/${classe.lower_name}">${classe.title}</a></li>
             </tal:repeat>
             </ul>
         </div>
