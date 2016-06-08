@@ -14,7 +14,7 @@ from shutil import rmtree
 from os import walk, remove, rename
 from os.path import abspath, dirname, join, exists
 from util import read_yaml, short_dir
-from datamodels import *
+from models.project import Project
 
 here = abspath(dirname(__file__))
 

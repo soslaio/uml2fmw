@@ -20,7 +20,8 @@ class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.
                "${taggedv.name}": ${taggedv.value}(<tal:rep repeat="rtaggedv atributo.tagged_values.widget_related">
                                     ${rtaggedv.widget_related_name}=${rtaggedv.value},</tal:rep>
                                   ),</tal:cond></tal:rep>}}</tal:cond></tal:defcond>
-        )</tal:cond></tal:rep><tal:cond condition="bool(classe.children)">
+        )</tal:cond>
+        </tal:rep><tal:cond condition="bool(classe.children)">
     ${classe.polymorphic_on} = Column(String(50),
         nullable=False,
         info={ "colanderalchemy" : { 'exclude': True } })</tal:cond>

@@ -1,3 +1,4 @@
 *.pyc
 generated/
 .idea/
+teste.py

@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+
+from base import Base
+from collections import OrderedDict
+
+
+class TaggedValue(Base):
+    """Objeto que representa um tagged value."""
+
+    def __init__(self, xml_attributes, xmlobj=None):
+        self.xml_attributes = xml_attributes
+        self.datatype = dict()
+        if 'Value' not in self.xml_attributes.keys():
+            xmldatatypes = xmlobj.iterdescendants(tag="DataType")
+            for dt in xmldatatypes:
+                self.datatype = dt.attrib
+        super(TaggedValue, self).__init__(self.xml_attributes)
+
+    @property
+    def widget_related_name(self):
+        """Nome de um tagged value relacionado ao widget."""
+        return self.name.split(':')[1]
+
+    @property
+    def value(self):
+        """Valor do tagged value."""
+        if 'Value' in self.xml_attributes.keys():
+            return self.xml_attributes['Value']
+        elif bool(self.datatype):
+            return self.datatype['Name']
+        else:
+            return ''
+
+    @property
+    def tipo(self):
+        """Tipo de dados do tagged value."""
+        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else ''
+
+
+class TaggedValues:
+    """Tagged values associados ao objeto XML."""
+
+    def __init__(self, xmlobj=None, data=None, from_class=False):
+        if xmlobj is not None:
+            self.__tagged_values = OrderedDict()
+
+            # Se for oriundo de uma classe, tenta limitar o contexto.
+            if from_class:
+                try:
+                    xmlobj = xmlobj.TaggedValues
+                    self.__search(xmlobj)
+                except AttributeError:
+                    pass
+            else:
+                self.__search(xmlobj)
+        elif data is not None:
+            self.__tagged_values = data
+        else:
+            self.__tagged_values = OrderedDict()
+
+    def __search(self, xmlobj):
+        """Faz a busca dos tagged values."""
+        xmltaggedvalues = xmlobj.iterdescendants(tag="TaggedValue")
+        if xmltaggedvalues is not None:
+            for taggedv in xmltaggedvalues:
+                tv = TaggedValue(taggedv.attrib, taggedv)
+                self.__tagged_values[tv.name] = tv
+
+    @property
+    def widget_related(self):
+        """Tagged values relacionados ao widget."""
+        data = OrderedDict({k: self.__tagged_values[k] for k in self.__tagged_values.keys() if k.find(':') != -1})
+        return TaggedValues(data=data)
+
+    @property
+    def not_widget_related(self):
+        """Tagged values não relacionados ao widget."""
+        data = OrderedDict({k: self.__tagged_values[k]
+                            for k in self.__tagged_values.keys() if k not in self.widget_related.keys()})
+        return TaggedValues(data=data)
+
+    def keys(self):
+        """Chaves do dicionário interno de tagged values."""
+        if self.__tagged_values is not None:
+            return self.__tagged_values.keys()
+        else:
+            return list()
+
+    def __len__(self):
+        return len(self.__tagged_values)
+
+    def __getitem__(self, key):
+        return self.__tagged_values[key]
+
+    def __iter__(self):
+        return self.__tagged_values.itervalues()
