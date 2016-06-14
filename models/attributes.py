@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Módulo com definições de atributos de classes."""
 
 import logging
-from base import Base
+from base import Base, OrderedDictBase
 from tagged_values import TaggedValues
 from stereotypes import Stereotypes
 from collections import OrderedDict
-
+from relationships import Association
 logger = logging.getLogger('attributes')
 
 
@@ -16,7 +17,15 @@ class Atributo(Base):
         self.xml_attributes = xml_attributes
         self.tagged_values = tagged_values
         self.stereotypes = stereotypes
-        super(Atributo, self).__init__(self.xml_attributes)
+
+        # O instanciamento da classe superior no old-style é necessário, devido haverem classes que herdam
+        # dessa classe. Por algum motivo o interpretador se enrola em instanciar usando o super().
+        Base.__init__(self, xml_attributes)
+
+    @property
+    def is_association_attribute(self):
+        """Verifica se o atributo é de associação."""
+        return isinstance(self, AssociationAttribute)
 
     @property
     def colander(self):
@@ -30,23 +39,21 @@ class Atributo(Base):
         """Tipo de dados do atributo."""
         return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else None
 
-    @property
-    def is_association_attribute(self):
-        """Indica se o atributo é um atributo de associação."""
-        return self.stereotypes.find('association_attribute') is not None
 
-    def __str__(self):
-        return "Atributo '%s'" % self.name
-
-
-class AssociationAttribute(Atributo):
+class AssociationAttribute(Atributo, Association):
     """Atributo de associação."""
 
+    def __init__(self, xml_attributes, tagged_values, stereotypes=None):
+        self.xml_attributes = xml_attributes
+        self.tagged_values = tagged_values
+        self.stereotypes = stereotypes
+        super(AssociationAttribute, self).__init__(xml_attributes, tagged_values)
 
-class Atributos:
+
+class Atributos(OrderedDictBase):
     """Atributos da classe."""
 
-    def __init__(self, xmlclasse=None, data=None):
+    def __init__(self, xmlclasse=None, data=None, class_associations=None):
         if xmlclasse is not None:
             self.__atributos = OrderedDict()
             xmlatributos = xmlclasse.iterdescendants(tag="Attribute")
@@ -59,7 +66,7 @@ class Atributos:
                     stereotypes = Stereotypes(xmlatributo)
 
                     # Contrução do atributo e inclusão na lista de atributos de classe.
-                    if stereotypes.find('association_attribute') is not None:
+                    if stereotypes.find('name', 'association_attribute') is not None:
                         atributo = AssociationAttribute(xml_attributes, tagged_values, stereotypes=stereotypes)
                     else:
                         atributo = Atributo(xml_attributes, tagged_values, stereotypes=stereotypes)
@@ -67,10 +74,19 @@ class Atributos:
                     self.__atributos[atributo.name] = atributo
             else:
                 logger.debug(u'Nenhum atributo encontrado.')
+
+            # Cria os atributos associativos.
+            if class_associations is not None:
+                for association in class_associations:
+                    attribute = AssociationAttribute(association.xml_attributes, association.tagged_values)
+                    self.__atributos[attribute.name] = attribute
         elif data is not None:
             self.__atributos = data
         else:
             self.__atributos = OrderedDict()
+
+        # Instancia a classe superior.
+        super(Atributos, self).__init__(self.__atributos, Atributos)
 
     @property
     def association_attributes(self):
@@ -80,19 +96,3 @@ class Atributos:
             if attribute.is_association_attribute:
                 association_attributes[attribute.id] = attribute
         return Atributos(data=association_attributes)
-
-    def keys(self):
-        """Chaves do dicionário interno de atributos."""
-        if self.__atributos is not None:
-            return self.__atributos.keys()
-        else:
-            return list()
-
-    def __len__(self):
-        return len(self.__atributos)
-
-    def __getitem__(self, key):
-        return self.__atributos[key]
-
-    def __iter__(self):
-        return self.__atributos.itervalues()

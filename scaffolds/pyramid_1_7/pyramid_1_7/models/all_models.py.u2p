@@ -1,6 +1,7 @@
 from sqlalchemy import Enum, Column, Index, Integer, Text, String, Numeric, ForeignKey, Date, Boolean
 from sqlalchemy import event
 from colanderalchemy import setup_schema
+from sqlalchemy.orm import relationship
 from deform.widget import TextInputWidget, SelectWidget, RadioChoiceWidget, SequenceWidget, AutocompleteInputWidget
 from .meta import Base
 <tal:def define="classes project.classes">
@@ -15,6 +16,21 @@ class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.
     ${atributo.name} = Column(${atributo.tipo},<tal:defcond define="atv atributo.tagged_values" condition="bool(atv)"><tal:cond condition="'primary_key' in atv.keys()">
         primary_key=${str(atv['primary_key'].value)},</tal:cond><tal:cond condition="'nullable' in atv.keys()">
         nullable=${str(atv['nullable'].value)},</tal:cond><tal:cond condition="atributo.colander">
+        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
+               "${taggedv.name}": ${taggedv.value if taggedv.tipo == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
+               "${taggedv.name}": ${taggedv.value}(<tal:rep repeat="rtaggedv atributo.tagged_values.widget_related">
+                                    ${rtaggedv.widget_related_name}=${rtaggedv.value},</tal:rep>
+                                  ),</tal:cond></tal:rep>}}</tal:cond></tal:defcond>
+        )</tal:cond>
+    <tal:cond condition="atributo.is_association_attribute"><tal:define define="to_class classes[atributo.to_id]">
+    ${atributo.name} = relationship(${to_class.name},</tal:define>
+        <tal:defcond define="atv atributo.tagged_values" condition="bool(atv)">
+        <tal:cond condition="'primary_key' in atv.keys()">
+        primary_key=${str(atv['primary_key'].value)},
+        </tal:cond>
+        <tal:cond condition="'nullable' in atv.keys()">
+        nullable=${str(atv['nullable'].value)},</tal:cond>
+        <tal:cond condition="atributo.colander">
         info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
                "${taggedv.name}": ${taggedv.value if taggedv.tipo == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
                "${taggedv.name}": ${taggedv.value}(<tal:rep repeat="rtaggedv atributo.tagged_values.widget_related">

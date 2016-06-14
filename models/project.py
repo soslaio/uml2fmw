@@ -4,15 +4,17 @@ import logging
 from lxml import objectify
 from base import Base
 from classes import Classes
-
-logger = logging.getLogger('attributes')
+from relationships import Associations
+logger = logging.getLogger('project')
 
 
 class Project(Base):
     """Representação de um projeto."""
 
     def __init__(self, xmlobj):
-        self.classes = Classes(xmlobj)
+        self.associations = Associations(xmlobj)
+        self.classes = Classes(xmlobj, associations=self.associations)
+
         xml_attributes = xmlobj.attrib
         super(Project, self).__init__(xml_attributes)
 

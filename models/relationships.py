@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+"""Classes que representam relações entre as classes do diagrama."""
 
 import logging
-from base import Base
-
+from base import Base, DictBase
+from tagged_values import TaggedValues
 logger = logging.getLogger('relationships')
 
 
@@ -12,11 +13,27 @@ class Relationship(Base):
 
 class Association(Relationship):
     """Representa uma associação entre classes."""
+    def __init__(self, xml_attributes, tagged_values):
+        self.xml_attributes = xml_attributes
+        self.tagged_values = tagged_values
+        super(Association, self).__init__(xml_attributes)
+
+    @property
+    def from_id(self):
+        """ID da classe de origem"""
+        return self.xml_attributes['EndRelationshipFromMetaModelElement']
+
+    @property
+    def to_id(self):
+        """ID da classe de origem"""
+        return self.xml_attributes['EndRelationshipToMetaModelElement']
 
 
-class Associations:
+class Associations(DictBase):
     """Lista de associações do modelo UML."""
-    def __init__(self, xmlobj=None, data=None):
+    def __init__(self, xmlobj=None, data=None, class_id=None):
+        global logger
+        logger = logging.getLogger('relationships')
         if xmlobj is not None:
             self.__associations = dict()
             xmlcontainer = xmlobj.Models.ModelRelationshipContainer
@@ -24,30 +41,28 @@ class Associations:
 
             if xmlassociations is not None:
                 for xmlassociation in xmlassociations:
-                    gen = Association(xmlassociation.attrib)
-                    self.__associations[gen.id] = gen
+                    logger.debug(u'XML attr associação: %s' % xmlassociation.attrib)
+                    xml_attributes = xmlassociation.attrib
+                    tagged_values = TaggedValues(xmlobj=xmlassociation)
+                    association = Association(xml_attributes, tagged_values)
+
+                    # Gambiarra pra evitar que sejam adicionados associações em níveis abaixo do desejado.
+                    if 'Id' in association.xml_attributes.keys():
+                        # Verifica se é pra filtrar por classe.
+                        if class_id is not None:
+                            if association.from_id == class_id:
+                                self.__associations[association.id] = association
+                        else:
+                            self.__associations[association.id] = association
             else:
-                print u'Nenhuma associação localizada.'
+                logger.info(u'Nenhuma associação localizada.')
         elif data is not None:
             self.__associations = data
         else:
             self.__associations = dict()
 
-    def keys(self):
-        """Chaves do dicionário interno de generelizações."""
-        if self.__associations is not None:
-            return self.__associations.keys()
-        else:
-            return list()
-
-    def __len__(self):
-        return len(self.__associations)
-
-    def __getitem__(self, key):
-        return self.__associations[key]
-
-    def __iter__(self):
-        return self.__associations.itervalues()
+        # Instancia a classe superior.
+        super(Associations, self).__init__(self.__associations, Associations)
 
 
 class Generalization(Relationship):
@@ -64,7 +79,7 @@ class Generalization(Relationship):
         return self.xml_attributes['To']
 
 
-class Generalizations:
+class Generalizations(DictBase):
     """Lista de generalizações do diagrama."""
 
     def __init__(self, xmlobj=None, data=None):
@@ -81,24 +96,11 @@ class Generalizations:
                     if 'Id' in gen.xml_attributes.keys():
                         self.__generalizacoes[gen.id] = gen
             else:
-                print u'Nenhuma generalização localizada.'
+                logger.debug(u'Nenhuma generalização localizada.')
         elif data is not None:
             self.__generalizacoes = data
         else:
             self.__generalizacoes = dict()
 
-    def keys(self):
-        """Chaves do dicionário interno de generelizações."""
-        if self.__generalizacoes is not None:
-            return self.__generalizacoes.keys()
-        else:
-            return list()
-
-    def __len__(self):
-        return len(self.__generalizacoes)
-
-    def __getitem__(self, key):
-        return self.__generalizacoes[key]
-
-    def __iter__(self):
-        return self.__generalizacoes.itervalues()
+        # Instancia a classe superior.
+        super(Generalizations, self).__init__(self.__generalizacoes, Generalizations)

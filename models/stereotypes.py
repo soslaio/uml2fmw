@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from base import Base
-
+from base import Base, ListBase
 logger = logging.getLogger('stereotypes')
 
 
@@ -10,7 +9,7 @@ class Stereotype(Base):
     """Representação de um esteriótipo."""
 
 
-class Stereotypes:
+class Stereotypes(ListBase):
     """Lista de estereótipos de um objeto."""
     def __init__(self, xmlobj):
         self.__stereotypes = list()
@@ -22,18 +21,5 @@ class Stereotypes:
                 stereotype = Stereotype(xml_attributes)
                 self.__stereotypes.append(stereotype)
 
-    def find(self, name):
-        """Busca um estereótipo pelo nome na lista de estereótipos."""
-        for stereotype in self.__stereotypes:
-            if stereotype.name == name:
-                return stereotype
-        return None
-
-    def __len__(self):
-        return len(self.__stereotypes)
-
-    def __getitem__(self, item):
-        return self.__stereotypes[item]
-
-    def __iter__(self):
-        return iter(self.__stereotypes)
+        # Instancia a classe superior.
+        super(Stereotypes, self).__init__(self.__stereotypes, Stereotypes)

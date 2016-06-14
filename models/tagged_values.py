@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from base import Base
+import logging
+from base import Base, OrderedDictBase
 from collections import OrderedDict
+logger = logging.getLogger('tagged_values')
 
 
 class TaggedValue(Base):
@@ -37,7 +39,7 @@ class TaggedValue(Base):
         return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else ''
 
 
-class TaggedValues:
+class TaggedValues(OrderedDictBase):
     """Tagged values associados ao objeto XML."""
 
     def __init__(self, xmlobj=None, data=None, from_class=False):
@@ -57,6 +59,9 @@ class TaggedValues:
             self.__tagged_values = data
         else:
             self.__tagged_values = OrderedDict()
+
+        # Instancia a classe superior.
+        super(TaggedValues, self).__init__(self.__tagged_values, TaggedValues)
 
     def __search(self, xmlobj):
         """Faz a busca dos tagged values."""
@@ -78,19 +83,3 @@ class TaggedValues:
         data = OrderedDict({k: self.__tagged_values[k]
                             for k in self.__tagged_values.keys() if k not in self.widget_related.keys()})
         return TaggedValues(data=data)
-
-    def keys(self):
-        """Chaves do dicionário interno de tagged values."""
-        if self.__tagged_values is not None:
-            return self.__tagged_values.keys()
-        else:
-            return list()
-
-    def __len__(self):
-        return len(self.__tagged_values)
-
-    def __getitem__(self, key):
-        return self.__tagged_values[key]
-
-    def __iter__(self):
-        return self.__tagged_values.itervalues()
