@@ -95,16 +95,30 @@ class ListBase(object):
         self.__list_object = list_object
         self.__collection_class = collection_class
 
-    def filter(self, attribute_name, value):
-        """Busca uma classe pelo nome na lista de classes."""
+    def filter(self, attribute_name, value=None):
+        """Retorna uma lista de objetos filtrados pelo valor de um determinado atributo.
+
+        A priori, o método verifica se foi repassado um valor de comparação para o atributo.
+        Se foi repassado, retorna apenas objetos que possuam o aributo com esse valor.
+
+        Se nenhum valor foi repassado, verifica se o atributo é de uma classe baseada em dict ou DictBase.
+        Se for, retorna apenas objetos cujo atributo possua algum elemento, usando a notação padrão de dicionários
+        para essa verificação: bool(objeto).
+
+        Se não for um dicionário de nenhuma natureza, retorna objetos cujo atributo seja diferente de None.
+        """
         list_object = list()
         for obj in self.__list_object:
-            if getattr(obj, attribute_name) == value:
+            attr_value = getattr(obj, attribute_name)
+            condition = attr_value == value if value is not None else \
+                bool(attr_value) if isinstance(attr_value, (dict, DictBase)) else \
+                attr_value is not None
+            if condition:
                 list_object[obj.id] = obj
         return self.__collection_class(data=list_object)
 
     def find(self, attribute_name, value):
-        """Retorna o primeiro argumento que corresponde ao filtro."""
+        """Retorna o primeiro objeto que corresponde ao filtro."""
         for obj in self.__list_object:
             if getattr(obj, attribute_name) == value:
                 return obj
