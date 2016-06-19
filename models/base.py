@@ -34,11 +34,17 @@ class DictBase(object):
         self.__collection_class = collection_class
         self.__base_class = base_class
 
-    def filter(self, attribute_name, value):
+    def filter(self, attribute_name, value=None):
         """Busca uma classe pelo nome na lista de classes."""
         bc_object = self.__base_class()
         for obj in self.__dict_object.itervalues():
-            if getattr(obj, attribute_name) == value:
+            attr_value = getattr(obj, attribute_name)
+            value_type = type(attr_value).__name__
+            condition = attr_value == value if value is not None else \
+                bool(attr_value) if value_type in ['dict', 'OrderedDict'] else \
+                len(attr_value) > 0 if isinstance(attr_value, DictBase) else \
+                attr_value is not None
+            if condition:
                 bc_object[obj.id] = obj
         return self.__collection_class(data=bc_object)
 

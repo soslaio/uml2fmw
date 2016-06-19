@@ -39,6 +39,9 @@ class Atributo(Base):
         """Tipo de dados do atributo."""
         return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else None
 
+    def __repr__(self):
+        return u'Atributo %s' % self.name
+
 
 class AssociationAttribute(Atributo, Association):
     """Atributo de associação."""

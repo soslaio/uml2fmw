@@ -132,7 +132,7 @@ class Classes(OrderedDictBase):
                 self.connect(xmlobj)
 
                 # Ordena as classes numa segundo uma lógica de referências.
-                self.order()
+                # self.order()
             else:
                 logger.debug(u'Nenhuma classe localizada.')
         elif data is not None:
@@ -144,13 +144,22 @@ class Classes(OrderedDictBase):
         super(Classes, self).__init__(self.__classes, Classes)
 
     @property
+    def parents(self):
+        """Classes que são são pais de outras classes."""
+        return self.filter('children')
+
+    @property
     def view_classes(self):
         """Lista de classes principais."""
-        view_classes = OrderedDict()
-        for classe in self.__classes.itervalues():
-            if classe.is_view_class:
-                view_classes[classe.id] = classe
-        return Classes(data=view_classes)
+        return self.filter('is_view_class', True)
+
+    def general_order(self):
+        """Ordenação priorizada pelas generalizações."""
+        lap = 1
+        have_changes = True
+        ordered_classes = OrderedDict()
+
+        return self
 
     def order(self):
         """Sequencia as classes baseado nas referências que as classes fazem entre elas.
@@ -163,6 +172,7 @@ class Classes(OrderedDictBase):
         have_changes = True
         ordered_classes = OrderedDict()
         while have_changes:
+            print [x.name for x in ordered_classes.itervalues()]  # <<<<--------- EXCLUIR!!!
             have_changes = False
             for classe in self.__classes.itervalues():
                 # Na primeira volta, carrega as classes que não fazem referências a nenhuma outras.
