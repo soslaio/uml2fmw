@@ -35,14 +35,22 @@ class DictBase(object):
         self.__base_class = base_class
 
     def filter(self, attribute_name, value=None):
-        """Busca uma classe pelo nome na lista de classes."""
+        """Retorna uma lista de objetos filtrados pelo valor de um determinado atributo.
+
+        A priori, o método verifica se foi repassado um valor de comparação para o atributo.
+        Se foi repassado, retorna apenas objetos que possuam o aributo com esse valor.
+
+        Se nenhum valor foi repassado, verifica se o atributo é de uma classe baseada em dict ou DictBase.
+        Se for, retorna apenas objetos cujo atributo possua algum elemento, usando a notação padrão de dicionários
+        para essa verificação: bool(objeto).
+
+        Se não for um dicionário de nenhuma natureza, retorna objetos cujo atributo seja diferente de None.
+        """
         bc_object = self.__base_class()
         for obj in self.__dict_object.itervalues():
             attr_value = getattr(obj, attribute_name)
-            value_type = type(attr_value).__name__
             condition = attr_value == value if value is not None else \
-                bool(attr_value) if value_type in ['dict', 'OrderedDict'] else \
-                len(attr_value) > 0 if isinstance(attr_value, DictBase) else \
+                bool(attr_value) if isinstance(attr_value, (dict, DictBase)) else \
                 attr_value is not None
             if condition:
                 bc_object[obj.id] = obj
