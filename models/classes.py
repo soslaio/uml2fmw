@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Classes que representam classes do modelo UML."""
 
 import logging
 from base import Base, OrderedDictBase
@@ -23,50 +24,25 @@ class Classe(Base):
         self.stereotypes = stereotypes
         super(Classe, self).__init__(xml_attributes)
 
+    def __str__(self):
+        return u"Classe '%s'" % self.name
+
     @property
     def association_attributes(self):
         """Atributos de associação da classe."""
         return self.attributes.association_attributes
 
     @property
-    def referenced_classes(self):
-        """Retorna uma lista com os IDs das classes referenciadas."""
-        referenced_classes = list()
-
-        # Generalizações são adicionadas primeiro.
-        if bool(self.parents):
-            for parent in self.parents:
-                referenced_classes.append(parent.id)
-
-        # Associações são adicionadas em seguida.
-        for attribute in self.association_attributes:
-            referenced_classes.append(attribute.to_id)
-
-        return referenced_classes
+    def colander_tagged_values(self):
+        """Tagged values da classe relacionados aos schemas do colander."""
+        colander_class = ['title', 'description']
+        data = {tv.id: tv for tv in self.tagged_values if tv.name in colander_class}
+        return TaggedValues(data=data) if data is not None else None
 
     @property
     def is_view_class(self):
         """Indica se a clase é uma view class."""
         return self.stereotypes.find('name', 'view_class') is not None
-
-    @property
-    def title(self):
-        """Título de apresentação da classe."""
-        return self.tagged_values['title'].value \
-            if 'title' in self.tagged_values.keys() else self.name
-
-    @property
-    def tablename(self):
-        """Valor do tagged value 'tablename' da classe."""
-        return self.tagged_values['tablename'].value \
-            if 'tablename' in self.tagged_values.keys() else self.name.lower()
-
-    @property
-    def colander(self):
-        """Tagged values da classe relacionados aos schemas do colander."""
-        colander_class = ['title', 'description']
-        data = {tv.id: tv for tv in self.tagged_values if tv.name in colander_class}
-        return TaggedValues(data=data) if data is not None else None
 
     @property
     def polymorphic_identity(self):
@@ -86,8 +62,33 @@ class Classe(Base):
         else:
             return None
 
-    def __str__(self):
-        return u"Classe '%s'" % self.name
+    @property
+    def related_classes(self):
+        """Retorna uma lista com os IDs das classes referenciadas."""
+        related_classes = list()
+
+        # Generalizações são adicionadas primeiro.
+        if bool(self.parents):
+            for parent in self.parents:
+                related_classes.append(parent.id)
+
+        # Associações são adicionadas em seguida.
+        for attribute in self.association_attributes:
+            related_classes.append(attribute.to_id)
+
+        return related_classes
+
+    @property
+    def tablename(self):
+        """Valor do tagged value 'tablename' da classe."""
+        return self.tagged_values['tablename'].value \
+            if 'tablename' in self.tagged_values.keys() else self.name.lower()
+
+    @property
+    def title(self):
+        """Título de apresentação da classe."""
+        return self.tagged_values['title'].value \
+            if 'title' in self.tagged_values.keys() else self.name
 
 
 class Classes(OrderedDictBase):
@@ -143,23 +144,49 @@ class Classes(OrderedDictBase):
         # Instancia a classe superior.
         super(Classes, self).__init__(self.__classes, Classes)
 
-    @property
-    def parents(self):
-        """Classes que são são pais de outras classes."""
-        return self.filter('children')
+    def __str__(self):
+        strclass = ''
+        for k in self.__classes.keys():
+            classe = self.__classes[k]
+            strclass += '%s, ID: %s\n' % (classe, classe.id)
+            for atributo in classe.attributes:
+                strclass += '\t%s\n' % atributo
 
-    @property
-    def view_classes(self):
-        """Lista de classes principais."""
-        return self.filter('is_view_class', True)
+            if bool(classe.children):
+                strclass += '\tFilhos:\n'
+                for children in classe.children:
+                    strclass += '\t   %s\n' % children
 
-    def general_order(self):
-        """Ordenação priorizada pelas generalizações."""
-        lap = 1
-        have_changes = True
-        ordered_classes = OrderedDict()
+            if bool(classe.parents):
+                strclass += '\tPais:\n'
+                for parents in classe.parents:
+                    strclass += '\t   %s\n' % parents
+        return strclass
 
-        return self
+    def connect(self, xmlobj):
+        """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
+        generalizacoes = Generalizations(xmlobj)
+
+        for classe in self.__classes.itervalues():
+            # Busca generalizações relacionadas à classe.
+            parents = OrderedDict()
+            children = OrderedDict()
+
+            for gen in generalizacoes:
+                # Localiza os filhos da classe.
+                if classe.id == gen.from_id:
+                    children[gen.to_id] = self.__classes[gen.to_id]
+
+                # Localiza os pais da classe.
+                if classe.id == gen.to_id:
+                    classe.nreferences += 1  # adiciona à genrelalização ao contador de referências.
+                    parents[gen.from_id] = self.__classes[gen.from_id]
+
+            if parents is not None:
+                classe.parents = Classes(data=parents)
+
+            if children is not None:
+                classe.children = Classes(data=children)
 
     def order(self):
         """Sequencia as classes baseado nas referências que as classes fazem entre elas.
@@ -195,47 +222,17 @@ class Classes(OrderedDictBase):
         self.__classes = ordered_classes
         return ordered_classes
 
-    def connect(self, xmlobj):
-        """Analisa a lista de generalizações recebida e faz as relações entre as classes."""
+    @property
+    def child_classes(self):
+        """Classes que são filhas de outras classes."""
+        return self.filter('parents')
 
-        generalizacoes = Generalizations(xmlobj)
+    @property
+    def parent_classes(self):
+        """Classes que são são pais de outras classes."""
+        return self.filter('children')
 
-        for classe in self.__classes.itervalues():
-            # Busca generalizações relacionadas à classe.
-            parents = OrderedDict()
-            children = OrderedDict()
-
-            for gen in generalizacoes:
-                # Localiza os filhos da classe.
-                if classe.id == gen.from_id:
-                    children[gen.to_id] = self.__classes[gen.to_id]
-
-                # Localiza os pais da classe.
-                if classe.id == gen.to_id:
-                    classe.nreferences += 1  # adiciona à genrelalização ao contador de referências.
-                    parents[gen.from_id] = self.__classes[gen.from_id]
-
-            if parents is not None:
-                classe.parents = Classes(data=parents)
-
-            if children is not None:
-                classe.children = Classes(data=children)
-
-    def __str__(self):
-        strclass = ''
-        for k in self.__classes.keys():
-            classe = self.__classes[k]
-            strclass += '%s, ID: %s\n' % (classe, classe.id)
-            for atributo in classe.attributes:
-                strclass += '\t%s\n' % atributo
-
-            if bool(classe.children):
-                strclass += '\tFilhos:\n'
-                for children in classe.children:
-                    strclass += '\t   %s\n' % children
-
-            if bool(classe.parents):
-                strclass += '\tPais:\n'
-                for parents in classe.parents:
-                    strclass += '\t   %s\n' % parents
-        return strclass
+    @property
+    def view_classes(self):
+        """Lista de classes principais."""
+        return self.filter('is_view_class', True)

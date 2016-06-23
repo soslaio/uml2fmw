@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Módulo com definições do projeto."""
 
 import logging
 from lxml import objectify
@@ -14,7 +15,6 @@ class Project(Base):
     def __init__(self, xmlobj):
         self.associations = Associations(xmlobj)
         self.classes = Classes(xmlobj, associations=self.associations)
-
         xml_attributes = xmlobj.attrib
         super(Project, self).__init__(xml_attributes)
 

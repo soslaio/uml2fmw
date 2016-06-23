@@ -10,7 +10,7 @@ from relationships import Association
 logger = logging.getLogger('attributes')
 
 
-class Atributo(Base):
+class Attribute(Base):
     """Atributo de uma classe."""
 
     def __init__(self, xml_attributes, tagged_values, stereotypes=None):
@@ -22,28 +22,30 @@ class Atributo(Base):
         # dessa classe. Por algum motivo o interpretador se enrola em instanciar usando o super().
         Base.__init__(self, xml_attributes)
 
-    @property
-    def is_association_attribute(self):
-        """Verifica se o atributo é de associação."""
-        return isinstance(self, AssociationAttribute)
+    def __repr__(self):
+        return u'Atributo %s' % self.name
 
     @property
-    def colander(self):
+    def attr_type(self):
+        """Tipo de dados do atributo.
+
+        O nome não pode ser simplesmente 'type', pois esta é uma palavra reservada."""
+        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else None
+
+    @property
+    def colander_tagged_values(self):
         """Tagged values do atributo relacionados aos schemas do colander."""
         colander_attr = ['title', 'description', 'missing_msg', 'widget', 'validator', 'exclude', 'default']
         data = {tv.name: tv for tv in self.tagged_values if tv.name in colander_attr}
         return TaggedValues(data=data) if data is not None else None
 
     @property
-    def tipo(self):
-        """Tipo de dados do atributo."""
-        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else None
-
-    def __repr__(self):
-        return u'Atributo %s' % self.name
+    def is_association_attribute(self):
+        """Verifica se o atributo é de associação."""
+        return isinstance(self, AssociationAttribute)
 
 
-class AssociationAttribute(Atributo, Association):
+class AssociationAttribute(Attribute, Association):
     """Atributo de associação."""
 
     def __init__(self, xml_attributes, tagged_values, stereotypes=None):
@@ -72,7 +74,7 @@ class Atributos(OrderedDictBase):
                     if stereotypes.find('name', 'association_attribute') is not None:
                         atributo = AssociationAttribute(xml_attributes, tagged_values, stereotypes=stereotypes)
                     else:
-                        atributo = Atributo(xml_attributes, tagged_values, stereotypes=stereotypes)
+                        atributo = Attribute(xml_attributes, tagged_values, stereotypes=stereotypes)
 
                     self.__atributos[atributo.name] = atributo
             else:

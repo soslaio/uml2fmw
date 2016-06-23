@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Classe com representações dos tagged values do modelo UML."""
 
 import logging
 from base import Base, OrderedDictBase
@@ -19,9 +20,11 @@ class TaggedValue(Base):
         super(TaggedValue, self).__init__(self.xml_attributes)
 
     @property
-    def widget_related_name(self):
-        """Nome de um tagged value relacionado ao widget."""
-        return self.name.split(':')[1]
+    def tagv_type(self):
+        """Tipo de dados do tagged value.
+
+        O nome não pode ser simplesmente 'type', pois esta é uma palavra reservada."""
+        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else ''
 
     @property
     def value(self):
@@ -34,9 +37,9 @@ class TaggedValue(Base):
             return ''
 
     @property
-    def tipo(self):
-        """Tipo de dados do tagged value."""
-        return self.xml_attributes['Type'] if 'Type' in self.xml_attributes.keys() else ''
+    def widget_related_name(self):
+        """Nome de um tagged value relacionado ao widget."""
+        return self.name.split(':')[1]
 
 
 class TaggedValues(OrderedDictBase):
@@ -72,14 +75,14 @@ class TaggedValues(OrderedDictBase):
                 self.__tagged_values[tv.name] = tv
 
     @property
-    def widget_related(self):
-        """Tagged values relacionados ao widget."""
-        data = OrderedDict({k: self.__tagged_values[k] for k in self.__tagged_values.keys() if k.find(':') != -1})
-        return TaggedValues(data=data)
-
-    @property
     def not_widget_related(self):
         """Tagged values não relacionados ao widget."""
         data = OrderedDict({k: self.__tagged_values[k]
                             for k in self.__tagged_values.keys() if k not in self.widget_related.keys()})
+        return TaggedValues(data=data)
+
+    @property
+    def widget_related(self):
+        """Tagged values relacionados ao widget."""
+        data = OrderedDict({k: self.__tagged_values[k] for k in self.__tagged_values.keys() if k.find(':') != -1})
         return TaggedValues(data=data)

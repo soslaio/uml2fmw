@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Classe que representa os estereótipos do modelo UML."""
 
 import logging
 from base import Base, ListBase

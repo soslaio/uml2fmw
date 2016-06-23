@@ -13,11 +13,11 @@ class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.
     </tal:cond><tal:cond condition="bool(classe.parents)">
     __mapper_args__ = { "polymorphic_identity": "${ classe.polymorphic_identity }" }
     </tal:cond><tal:rep repeat="atributo classe.attributes"><tal:cond condition="not atributo.is_association_attribute">
-    ${atributo.name} = Column(${atributo.tipo},<tal:defcond define="atv atributo.tagged_values" condition="bool(atv)"><tal:cond condition="'primary_key' in atv.keys()">
+    ${atributo.name} = Column(${atributo.attr_type},<tal:defcond define="atv atributo.tagged_values" condition="bool(atv)"><tal:cond condition="'primary_key' in atv.keys()">
         primary_key=${str(atv['primary_key'].value)},</tal:cond><tal:cond condition="'nullable' in atv.keys()">
-        nullable=${str(atv['nullable'].value)},</tal:cond><tal:cond condition="atributo.colander">
-        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
-               "${taggedv.name}": ${taggedv.value if taggedv.tipo == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
+        nullable=${str(atv['nullable'].value)},</tal:cond><tal:cond condition="atributo.colander_tagged_values">
+        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander_tagged_values.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
+               "${taggedv.name}": ${taggedv.value if taggedv.tagv_type == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
                "${taggedv.name}": ${taggedv.value}(<tal:rep repeat="rtaggedv atributo.tagged_values.widget_related">
                                     ${rtaggedv.widget_related_name}=${rtaggedv.value},</tal:rep>
                                   ),</tal:cond></tal:rep>}}</tal:cond></tal:defcond>
@@ -30,9 +30,9 @@ class ${classe.name}(${', '.join(c.name for c in classe.parents) if bool(classe.
         </tal:cond>
         <tal:cond condition="'nullable' in atv.keys()">
         nullable=${str(atv['nullable'].value)},</tal:cond>
-        <tal:cond condition="atributo.colander">
-        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
-               "${taggedv.name}": ${taggedv.value if taggedv.tipo == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
+        <tal:cond condition="atributo.colander_tagged_values">
+        info={ "colanderalchemy" : {<tal:rep repeat="taggedv atributo.colander_tagged_values.not_widget_related"><tal:cond condition="taggedv.name != 'widget'">
+               "${taggedv.name}": ${taggedv.value if taggedv.tagv_type == "Boolean" else '"%s"' % taggedv.value },</tal:cond><tal:cond condition="taggedv.name == 'widget'">
                "${taggedv.name}": ${taggedv.value}(<tal:rep repeat="rtaggedv atributo.tagged_values.widget_related">
                                     ${rtaggedv.widget_related_name}=${rtaggedv.value},</tal:rep>
                                   ),</tal:cond></tal:rep>}}</tal:cond></tal:defcond>

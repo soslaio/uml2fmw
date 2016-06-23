@@ -10,6 +10,47 @@ logger = logging.getLogger('relationships')
 class Relationship(Base):
     """Representa uma relação genérica entre classes."""
 
+    @property
+    def from_id(self):
+        """Classe de origem da relação."""
+        return self.xml_attributes['From']
+
+    @property
+    def to_id(self):
+        """Classe de destino da relação."""
+        return self.xml_attributes['To']
+
+
+class Generalization(Relationship):
+    """Representação de uma generalização."""
+
+
+class Generalizations(DictBase):
+    """Lista de generalizações do diagrama."""
+
+    def __init__(self, xmlobj=None, data=None):
+        if xmlobj is not None:
+            self.__generalizacoes = dict()
+            xmlcontainer = xmlobj.Models.ModelRelationshipContainer
+            xmlgeneralizations = xmlcontainer.iterdescendants(tag="Generalization")
+
+            if xmlgeneralizations is not None:
+                for xmlgeneralization in xmlgeneralizations:
+                    gen = Generalization(xmlgeneralization.attrib)
+
+                    # Gambiarra para evitar que sejam adicionadas generalizações em níveis abaixo do desejado.
+                    if 'Id' in gen.xml_attributes.keys():
+                        self.__generalizacoes[gen.id] = gen
+            else:
+                logger.debug(u'Nenhuma generalização localizada.')
+        elif data is not None:
+            self.__generalizacoes = data
+        else:
+            self.__generalizacoes = dict()
+
+        # Instancia a classe superior.
+        super(Generalizations, self).__init__(self.__generalizacoes, Generalizations)
+
 
 class Association(Relationship):
     """Representa uma associação entre classes."""
@@ -63,44 +104,3 @@ class Associations(DictBase):
 
         # Instancia a classe superior.
         super(Associations, self).__init__(self.__associations, Associations)
-
-
-class Generalization(Relationship):
-    """Representação de uma generalização."""
-
-    @property
-    def from_id(self):
-        """Classe de origem da relação."""
-        return self.xml_attributes['From']
-
-    @property
-    def to_id(self):
-        """Classe de destino da relação."""
-        return self.xml_attributes['To']
-
-
-class Generalizations(DictBase):
-    """Lista de generalizações do diagrama."""
-
-    def __init__(self, xmlobj=None, data=None):
-        if xmlobj is not None:
-            self.__generalizacoes = dict()
-            xmlcontainer = xmlobj.Models.ModelRelationshipContainer
-            xmlgeneralizations = xmlcontainer.iterdescendants(tag="Generalization")
-
-            if xmlgeneralizations is not None:
-                for xmlgeneralization in xmlgeneralizations:
-                    gen = Generalization(xmlgeneralization.attrib)
-
-                    # Gambiarra para evitar que sejam adicionadas generalizações em níveis abaixo do desejado.
-                    if 'Id' in gen.xml_attributes.keys():
-                        self.__generalizacoes[gen.id] = gen
-            else:
-                logger.debug(u'Nenhuma generalização localizada.')
-        elif data is not None:
-            self.__generalizacoes = data
-        else:
-            self.__generalizacoes = dict()
-
-        # Instancia a classe superior.
-        super(Generalizations, self).__init__(self.__generalizacoes, Generalizations)
