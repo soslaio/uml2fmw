@@ -27,6 +27,7 @@ __author__ = u'Rogério Pereira'
 __email__ = 'rogeriorp@gmail.com'
 __version__ = '1.0'
 
+
 if __name__ == '__main__':
     # Carrega a configuração do log.
     fileConfig('logging_config.ini')

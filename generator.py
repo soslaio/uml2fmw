@@ -6,17 +6,20 @@
     'scaffolds' e dos dados objectificados do arquivo XML exportado do modelo UML.
 """
 
+import os
 import glob
 import logging
 from distutils.dir_util import copy_tree
 from chameleon import PageTemplate
 from shutil import rmtree
 from os import walk, remove, rename
-from os.path import abspath, dirname, join, exists
-from util import read_yaml, short_dir
+from os.path import join, exists
+from gentle.util import read_yaml, short_dir
 from models.project import Project
 
-here = abspath(dirname(__file__))
+here = os.getcwd()
+configfile = os.path.join(os.getcwd(), 'config.yml')
+basepath = read_yaml(configfile, 'basepath')
 
 
 class Generator(object):
@@ -30,29 +33,29 @@ class Generator(object):
         logger = logging.getLogger('generator')
 
         # Lê o scaffold a ser utilizado e mapeia as pastas de origem e destino da cópia.
-        scaffold = read_yaml('scaffold')
+        scaffold = read_yaml(configfile, 'scaffold')
         from_folder = join(here, 'scaffolds', scaffold)
         to_folder = join(here, 'generated', self.project.name)
 
         # Caso o diretório destino já exista, exclui.
         if exists(to_folder):
-            logger.info(u'Excluindo pasta "%s"' % short_dir(to_folder))
+            logger.info(u'Excluindo pasta "%s"' % short_dir(to_folder, basepath))
             rmtree(to_folder)
 
         # Faz a cópia de todos os arquivos na pasta de templates para a pasta de destino.
-        logger.info(u'Copiando arquivos de "%s" para "%s"' % (short_dir(from_folder),
-                                                              short_dir(to_folder)))
+        logger.info(u'Copiando arquivos de "%s" para "%s"' % (short_dir(from_folder, basepath),
+                                                              short_dir(to_folder, basepath)))
         copy_tree(from_folder, to_folder)
 
         # Renomeia a pasta do módulo.
         template_module = join(to_folder, scaffold)
         generated_module = join(to_folder, self.project.name)
-        logger.info(u'Renomeando "%s" para "%s"' % (short_dir(template_module),
-                                                    short_dir(generated_module)))
+        logger.info(u'Renomeando "%s" para "%s"' % (short_dir(template_module, basepath),
+                                                    short_dir(generated_module, basepath)))
         rename(template_module, generated_module)
 
         # Mapeia os templates nas pastas copiadas, usando-os como chave para os arquivos de código python.
-        template_extension = read_yaml('template_extension')
+        template_extension = read_yaml(configfile, 'template_extension')
         templates_and_genfiles = {tf: tf.replace('.%s' % template_extension, '') for root, _, __ in walk(join(to_folder))
                                   for tf in glob.glob(join(root, '*.%s' % template_extension))}
 
@@ -86,7 +89,7 @@ class Template(object):
         """Gera a aplicação a partir do arquivo XML exportado de um modelo UML."""
         # Instancia o logger.
         logger = logging.getLogger('render')
-        logger.info(u'Renderizando "%s"' % short_dir(self.__template))
+        logger.info(u'Renderizando "%s"' % short_dir(self.__template, basepath))
 
         with open(self.__template) as tf:
             template_code = tf.read()
