@@ -2,7 +2,8 @@
 """Classes que representam relações entre as classes do diagrama."""
 
 import logging
-from base import Base, DictBase
+from base import Base
+from gentle.base import DictBase
 from tagged_values import TaggedValues
 logger = logging.getLogger('relationships')
 

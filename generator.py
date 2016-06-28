@@ -18,7 +18,7 @@ from gentle.util import read_yaml, short_dir
 from models.project import Project
 
 here = os.getcwd()
-configfile = os.path.join(os.getcwd(), 'config.yml')
+configfile = os.path.join(here, 'config.yml')
 basepath = read_yaml(configfile, 'basepath')
 
 

@@ -2,7 +2,8 @@
 """Classe com representações dos tagged values do modelo UML."""
 
 import logging
-from base import Base, OrderedDictBase
+from base import Base
+from gentle.base import OrderedDictBase
 from collections import OrderedDict
 logger = logging.getLogger('tagged_values')
 

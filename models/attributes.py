@@ -2,7 +2,8 @@
 """Módulo com definições de atributos de classes."""
 
 import logging
-from base import Base, OrderedDictBase
+from base import Base
+from gentle.base import OrderedDictBase
 from tagged_values import TaggedValues
 from stereotypes import Stereotypes
 from collections import OrderedDict

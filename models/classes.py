@@ -2,7 +2,8 @@
 """Classes que representam classes do modelo UML."""
 
 import logging
-from base import Base, OrderedDictBase
+from base import Base
+from gentle.base import OrderedDictBase
 from collections import OrderedDict
 from tagged_values import TaggedValues
 from attributes import Atributos
