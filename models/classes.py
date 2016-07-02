@@ -26,7 +26,20 @@ class Classe(Base):
         super(Classe, self).__init__(xml_attributes)
 
     def __str__(self):
-        return u"Classe '%s'" % self.name
+        return_str = u'Classe "%s"' % self.name
+        return_str += str(self.attributes)
+
+        if bool(self.children):
+            return_str += '\n  Filhos:'
+            for children in self.children:
+                return_str += '\n    %s' % children.name
+
+        if bool(self.parents):
+            return_str += '\n  Pais:'
+            for parent in self.parents:
+                return_str += '\n    %s' % parent.name
+
+        return return_str
 
     @property
     def association_attributes(self):
@@ -147,21 +160,9 @@ class Classes(OrderedDictBase):
 
     def __str__(self):
         strclass = ''
-        for k in self.__classes.keys():
-            classe = self.__classes[k]
-            strclass += '%s, ID: %s\n' % (classe, classe.id)
-            for atributo in classe.attributes:
-                strclass += '\t%s\n' % atributo
-
-            if bool(classe.children):
-                strclass += '\tFilhos:\n'
-                for children in classe.children:
-                    strclass += '\t   %s\n' % children
-
-            if bool(classe.parents):
-                strclass += '\tPais:\n'
-                for parents in classe.parents:
-                    strclass += '\t   %s\n' % parents
+        for i, classe in enumerate(self.__classes.itervalues()):
+            strclass += '\n\n' if i != 0 else ''
+            strclass += str(classe)
         return strclass
 
     def connect(self, xmlobj):

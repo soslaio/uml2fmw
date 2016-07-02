@@ -23,8 +23,8 @@ class Attribute(Base):
         # dessa classe. Por algum motivo o interpretador se enrola em instanciar usando o super().
         Base.__init__(self, xml_attributes)
 
-    def __repr__(self):
-        return u'Atributo %s' % self.name
+    def __str__(self):
+        return u'Atributo "%s"' % self.name
 
     @property
     def attr_type(self):
@@ -93,6 +93,12 @@ class Atributos(OrderedDictBase):
 
         # Instancia a classe superior.
         super(Atributos, self).__init__(self.__atributos, Atributos)
+
+    def __str__(self):
+        return_msg = ''
+        for attr in self.__atributos.itervalues():
+            return_msg += '\n  %s' % str(attr)
+        return return_msg
 
     @property
     def association_attributes(self):
