@@ -1,0 +1,2 @@
+include *.rst
+recursive-include uml2fmw *.yml *.ini *.u2p *.jinja2 *.txt *.css *.png
