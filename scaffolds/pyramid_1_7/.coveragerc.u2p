@@ -1,3 +1,0 @@
-[run]
-source = ${project.name}
-omit = ${project.name}/test*

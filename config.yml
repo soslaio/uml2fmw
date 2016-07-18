@@ -1,8 +1,0 @@
-# Scaffold a ser utilizado para a renderização da aplicação.
-scaffold: pyramid_1_7
-
-# Pasta base para o encurtamento de pastas.
-basepath: uml2pyramid
-
-# Extensão utilizada para os templates.
-template_extension: u2p
